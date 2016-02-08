@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title><![CDATA[A Fantasy Ninja]]></title>
+  <subtitle><![CDATA[Records of ventures and codes.]]></subtitle>
+  <link href="/atom.xml" rel="self"/>
+  <link href="http://afantasy.ninja/"/>
+  <updated>2016-02-06T10:27:38.000Z</updated>
+  <id>http://afantasy.ninja/</id>
+  
+  <author>
+    <name><![CDATA[Allen]]></name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title><![CDATA[当提技术问题前我在想什么]]></title>
+    <link href="http://afantasy.ninja/2016/02/06/what-i-am-thinking-before-asking-questions/"/>
+    <id>http://afantasy.ninja/2016/02/06/what-i-am-thinking-before-asking-questions/</id>
+    <published>2016-02-06T10:27:38.000Z</published>
+    <updated>2016-02-06T10:27:38.000Z</updated>
+    <content type="html"><![CDATA[<p>有时候提一个问题的姿势，比提什么问题更加重要。<br><a id="more"></a><br>注: 本文最早是发在一个学习论坛上的 <a href="http://bbs.sike.io/t/topic/1385" target="_blank" rel="external">帖子</a>。后有所删改。</p>
+<h1 id="tl;dr">tl;dr</h1><p>本文的论点1：在你用尽浑身解数之前，请不要轻易发问题。<br>本文的论点2：请用心问一个问题。</p>
+<p>如果对其中的论点有异议的，欢迎留言反驳。也欢迎点击左（Win用户右）上角的叉叉。</p>
+<h1 id="在我遇到一个坑时">在我遇到一个坑时</h1><p>其实我经常遇到坑，而且经常自己坑自己。<del>之所以没有让其他人耻笑的原因只是我没有告诉别人（逃</del></p>
+<p>自己给自己挖坑的情况包括但不限于：</p>
+<ol>
+<li>Typo</li>
+<li>没保存</li>
+<li>没刷新</li>
+<li>没重启</li>
+<li>没脑子（对的，搞了半天，想错了</li>
+</ol>
+<p>其实我觉得前4点已经占了 95% 以上的情况。可能我不是一个老司机，所以智商比较捉急（逃</p>
+<p>因为跳了太多（自己的）坑，所以当我遇到一个”坑”时，我的反应是（按先后顺序排列）:</p>
+<ol>
+<li>这是我自己挖的么？</li>
+<li>我有没有重启/刷新/保存？</li>
+<li>Debug</li>
+</ol>
+<p>下文将讨论解决问题的流程。</p>
+<h1 id="1-_Debug">1. Debug</h1><p>这个问题太大，随便选门语言框架的 debug 话题就可以扯很久。我对 debug 的理解是：</p>
+<ol>
+<li>搜集并分析 log</li>
+<li>工具</li>
+<li>其他方法</li>
+</ol>
+<p>前两点我相信大家会懂。如果不懂的话可以看下一章（嗯，其实下一章没有提工具，哈哈哈哈哈）。其他方法包括但不限于：</p>
+<ul>
+<li>二分排除法</li>
+<li>断点</li>
+<li>Print</li>
+</ul>
+<h1 id="2-_搜索">2. 搜索</h1><blockquote>
+<p>xxx 是什么? </p>
+</blockquote>
+<p>这是我在论坛/群组里见过的最多的问题。康忙，现在是一个互联网时代。</p>
+<p>你不需要别人告诉你这是什么，网络上你能找到关于一个名词的一切。</p>
+<p>但是这里会有三个问题：搜索渠道、搜索内容和搜索技巧。</p>
+<h2 id="搜索渠道">搜索渠道</h2><p>首先，请谷歌。（抛开某度难看的吃相，在百度上搜技术问题简直就是慢性自杀<br>如果无法谷歌，请尽最大努力来进行翻墙。<br>如果连翻墙都没有办法（比如，你家的运营商是个渣渣），那用 <a href="http://cn.bing.com/" target="_blank" rel="external">必应</a> 也还行。</p>
+<h2 id="搜索内容">搜索内容</h2><ol>
+<li>报错日志的关键字，越具体越精确越好。举例：<code>error</code> 是一个很泛的词，而 <code>unexpected token &lt;</code> 或者 <code>permission denied</code> 是一个比较精确的描述。</li>
+<li>加上你使用的语言/框架/库 作为限定范围，别找 JavaScript 的错误跑 Java 去了。</li>
+</ol>
+<h2 id="搜索技巧">搜索技巧</h2><ol>
+<li>请用英语搜索（尝试用一切方法用英语描述你的问题）。我并没有崇洋媚外的意思，但是我个人认为，在目前比较流行的技术（比如，React）上，国外的速度还是要比国内快一点点的。国内的大牛作品，也多少建立在阅读（或翻译）国外博客/代码等等之上的。况且我们还有大 Stackoverflow。</li>
+<li>如果遵循了第一点，你会摸索到很多第2方法，比如直接上 Stackoverflow, 直接上 Github，直接查源码，直接订阅博客, etc.</li>
+</ol>
+<p>这方面其实我也不是很出色（可能是因为我的问题用关键字就已经能查到了），所以推荐 @cee 同学的 <a href="http://blog.cee.moe/secrets-that-a-programmer-should-know.html" target="_blank" rel="external">一篇文章</a>，里面有详细的描述。</p>
+<p>Have fun searching!</p>
+<h1 id="3-_如果还没有搞定（如果你看到这里）">3. 如果还没有搞定（如果你看到这里）</h1><p>请再次检查这是不是自己挖的坑。<br>或者把椅子拉后一点，喝口水，认真检查一次报错日志，理一理思路。<br>尝试一下用 <a href="https://zh.wikipedia.org/zh/%E5%B0%8F%E9%BB%84%E9%B8%AD%E8%B0%83%E8%AF%95%E6%B3%95" target="_blank" rel="external">小黄鸭调试法</a>。<br>准备问问题。</p>
+<h1 id="4-_问一个高质量的问题。">4. 问一个高质量的问题。</h1><p>在说这个之前，我要搬出伟大的 Eric Raymond 的 <a href="http://doc.zengrong.net/smart-questions/cn.html" target="_blank" rel="external">「提问的智慧」</a></p>
+<p>如果你看完了，你就会说：早知道我就直接看这个了，还要听你胡扯！（如果你没看完，可以看完再回来说这句话）</p>
+<p>但是我还是想说下我的看法。这是我对自己提的问题的要求：</p>
+<ol>
+<li>要有一个详细的，具体的标题。一目了然，方便导航，方便搜索，方便老司机带你飞；</li>
+<li>记录你在问之前做过的 debug，排除杂音；</li>
+<li>在解决之后修改题目，标记为【已解决】，再补一个解决方案；</li>
+<li>要懂得 say thankyou</li>
+</ol>
+<p>而一个好的提问究竟是怎样的呢? 我找到了一个挺不错的 <a href="https://ruby-china.org/topics/27890" target="_blank" rel="external">栗子</a>。</p>
+<p>有一个童鞋提出，问问题只是“顺便问”，这样能省下自己的时间。我想让大家一起思考的问题是：假如你是一个老司机，很会指路，如果让你重复的指很多次一样的道，话过三巡也会腻烦的吧？</p>
+<h1 id="Why_the_fuck">Why the fuck</h1><p>我觉得还是会有童鞋说：“我很急，我需要一个快速的答案！” 我的理解是：</p>
+<ol>
+<li><p>你没有安排好你的时间。非要到死线前才来要求生产力，是一种上了茅坑不冲屎，再上同样的茅坑屎还在的行为。</p>
+<blockquote>
+<p>Since you didn’t debug by yourself, you never know what the hell is behind the scene.</p>
+</blockquote>
+</li>
+<li><p>你很懒，懒到让别人帮你买单。</p>
+</li>
+</ol>
+<p>Q.E.D</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>有时候提一个问题的姿势，比提什么问题更加重要。<br>]]>
+    
+    </summary>
+    
+      <category term="tips" scheme="http://afantasy.ninja/tags/tips/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[如何在 Drupal 7 中构建模块 [译]]]></title>
+    <link href="http://afantasy.ninja/2016/02/05/how-to-create-a-module-in-drupal-7/"/>
+    <id>http://afantasy.ninja/2016/02/05/how-to-create-a-module-in-drupal-7/</id>
+    <published>2016-02-04T17:02:43.000Z</published>
+    <updated>2016-02-04T17:02:43.000Z</updated>
+    <content type="html"><![CDATA[<p>注1：本文翻译自 Drupal 官方网站关于构建模块的<a href="https://www.drupal.org/developing/modules/7" title="Drupal 7 模块指南" target="_blank" rel="external">指南</a>，结合实际操作有部分修改和简化。</p>
+<p>注2：阅读本文需要对 Drupal 有基本的了解：知道如何使用 Drupal 的管理后台，以及安装模块。</p>
+<h3 id="Getting_Started">Getting Started</h3><h4 id="预备工作">预备工作</h4><ol>
+<li>给模块取个名字。模块名建议用 “下划线+小写“ 的方式，以避免不必要的问题，比如 my_custom_module</li>
+<li>创建一个文件夹作为模块的文件夹</li>
+<li>在文件夹中新建两个 php 文件，分别是 <code>my_custom_module.module</code> 和 <code>my_custom_module.info</code>。module 文件是该模块的主文件入口，info 文件是该模块的定义，记录关于该模块的元信息。</li>
+<li><p>初始化 <code>my_custom_module.info</code> 文件。info 文件的通用模板为：</p>
+<figure class="highlight vbnet"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">name = My <span class="keyword">Custom</span> <span class="keyword">Module</span></span><br><span class="line">description = A description <span class="keyword">of</span> what your <span class="keyword">module</span> does</span><br><span class="line">core = <span class="number">7.</span>x</span><br></pre></td></tr></table></figure>
+<p>这里的 name 和 description 会显示在网站后台的模块管理界面中，作为模块的名字和介绍。关于 info 文件的详细介绍可以参考相应的 <a href="http://drupal.org/node/542202" title="info 文件的介绍" target="_blank" rel="external">Drupal 文档</a>.</p>
+</li>
+<li><p>初始化 <code>my_custom_module.module</code> 文件。在没有添加任何功能前，先在文件中加入一行 php 的开头标签（不需要结尾，如果加入结尾标签可能会导致一些运行问题）</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// my_custom_module.module</span></span><br><span class="line"><span class="preprocessor">&lt;?php</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>将模块的整个文件夹放入 <code>sites/all/modules</code> 文件夹中</p>
+</li>
+<li>这时在 Drupal 的管理后台中，你应该能够看到一个名字为 “My Custom Module” 的模块。启用它并保存配置。</li>
+</ol>
+<h4 id="实现第一个钩子"><a href="https://www.drupal.org/node/1095546" title="Drupal 7 模块指南 - 钩子函数" target="_blank" rel="external">实现第一个钩子</a></h4><p>接下来我们要利用通过 “钩子函数”（hooks） 来在模块中实现某些特定的功能。钩子函数的命名方式为：<code>{module_name}_{function_name}</code>，其中 <code>module_name</code> 是模块的名字，而 <code>function_name</code> 是预定义的钩子函数的后缀。Drupal 会调用这些钩子函数，并传入相应的特定数据。</p>
+<p>为了便于展示，我们来实现一个简单的钩子：<a href="hook_help-doc"><code>hook_help</code></a>，这个钩子可以让我们向使用者提供关于这个模块的帮助信息。要实现这个函数，我们就要用模块名字来取代钩子命名中的 “hook”，也就是实现一个叫做 <code>my_custom_module_help</code> 的函数，代码如下：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">&lt;?php</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">my_custom_module_help</span><span class="params">(<span class="variable">$path</span>, <span class="variable">$arg</span>)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">switch</span>(<span class="variable">$path</span>) &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="string">"admin/help#my_custom_module"</span>:</span><br><span class="line">      <span class="keyword">return</span> <span class="string">"&lt;p&gt;Do something&lt;/p&gt;"</span>;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个钩子函数接受两个参数：</p>
+<ul>
+<li><code>$path</code> 参数是用户查看模块帮助时所在的位置，即当前所处的 url 地址，这个参数可以是通配符</li>
+<li><code>$arg</code> 当 <code>$path</code> 为通配符时的匹配参数</li>
+</ul>
+<p>在这个例子中我们仅匹配特定的路径，所以仅使用 <code>$path</code> 参数（更多用法可以直接查看 Drupal 的<a href="https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_help/7" title="hook_help 钩子的文档" target="_blank" rel="external">文档</a>）。</p>
+<h4 id="检查钩子是否正确工作">检查钩子是否正确工作</h4><p>在模块管理界面查看 “My Custom Module” 这个模块，这时应该能够看到一个 “help” 的链接（首先要确保启用了 Help 这个核心模块），点击进入模块的帮助页面，查看钩子函数返回的文字内容。</p>
+<p>如果没有看到该链接，尝试先禁用模块，再重新启用。</p>
+<p>到这里为止，我们就顺利的搭建模块了！实现钩子函数是模块最常用的使用方法。</p>
+<h3 id="Reference">Reference</h3><ol>
+<li><a href="https://www.drupal.org/developing/modules/7" title="Drupal 7 模块指南" target="_blank" rel="external">Drupal 7 模块指南</a></li>
+<li><a href="https://www.drupal.org/node/1095546" title="Drupal 7 模块指南 - 钩子函数" target="_blank" rel="external">Drupal 7 模块指南 - 钩子函数</a></li>
+<li><a href="http://drupal.org/node/542202" title="info 文件的介绍" target="_blank" rel="external">Drupal 7 模块的 info 文件</a></li>
+<li><a href="https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_help/7" title="hook_help 钩子的文档" target="_blank" rel="external">Drupal 7 hook_help 函数</a></li>
+</ol>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>注1：本文翻译自 Drupal 官方网站关于构建模块的<a href="https://www.drupal.org/developing/modules/7" title="Drupal 7 模块指南" target="_blank" rel="external">指南<]]>
+    </summary>
+    
+      <category term="drupal" scheme="http://afantasy.ninja/tags/drupal/"/>
+    
+      <category term="translation" scheme="http://afantasy.ninja/tags/translation/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[Hexo + Github Page 搭建博客]]></title>
+    <link href="http://afantasy.ninja/2015/06/06/Hexo-Github-Page-%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/"/>
+    <id>http://afantasy.ninja/2015/06/06/Hexo-Github-Page-搭建博客/</id>
+    <published>2015-06-06T13:01:52.000Z</published>
+    <updated>2015-06-06T13:01:52.000Z</updated>
+    <content type="html"><![CDATA[<p>在 第2届广州创客马拉松 的守夜期间，为了不让自己睡着，突然想起了要搭建自己的博客。</p>
+<p>有几个可选的方式：</p>
+<ul>
+<li>jekyll</li>
+<li>octopress</li>
+<li>hexo</li>
+<li>从头搭建一个</li>
+</ul>
+<p>由于最近用 Node 多一点（Ruby 的相当生疏），所以对 jekyll 和 octopress 不大有信心；而从头搭建一个又比较累（懒），加上<a href="http://threegoldstone.com/" target="_blank" rel="external">鑫磊也干了</a>，所以我还是用 hexo 吧。</p>
+<p><a href="https://hexo.io/" target="_blank" rel="external">Hexo</a> 是一个基于 Node 的博客生成工具，支持 Markdown 语法写作。可以阅读 <a href="http://ibruce.info/2013/11/22/hexo-your-blog/" target="_blank" rel="external">这篇文章</a> 来了解详细的各种折腾方法。</p>
+<p>对于 Windows 用户我会更加推荐 Hexo，因为在 Windows 上基于 Ruby 的应用可能会有些坑。<del>虽然我是一个 Mac 党，并没有这样的问题。</del></p>
+<p>本文主要记录我搭建本博客的基本步骤和流程，基于 Hexo 和 Github Page</p>
+<h3 id="购买域名">购买域名</h3><p>如果没有购买域名的话，基于 Github 的博客就只能跑在 <code>[username].github.io</code> 上了，而我的 Github 用户名又很长。。所以还是买一个域名吧。我用的是 <a href="https://www.namecheap.com/" target="_blank" rel="external">namecheap</a>，只需要登陆后，在首页输入想要的关键字，就可以查看到可选的域名列表，以及具体的价格。推荐大家买 <code>.me</code> 或者 <code>.us</code> 的域名，另外 <code>.ninja</code> 也挺好玩的。</p>
+<h3 id="安装_Hexo">安装 Hexo</h3><p>Hexo 是基于 Node 的博客工具。还没有安装 Node 的童鞋可以根据 <a href="https://cnodejs.org/topic/5338c5db7cbade005b023c98" target="_blank" rel="external">这个教程</a> 来安装。</p>
+<p>安装指令：<code>npm install -g hexo</code></p>
+<h3 id="利用_Hexo_搭建博客原型">利用 Hexo 搭建博客原型</h3><p>在命令行中，通过以下的指令来生成博客：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">hexo init blog  <span class="comment"># 生成一个博客的原型，存放在 blog 文件夹下</span></span><br><span class="line"><span class="built_in">cd</span> blog</span><br><span class="line">npm install     <span class="comment"># 安装 npm 包依赖</span></span><br><span class="line">hexo generate   <span class="comment"># 生成静态页面</span></span><br><span class="line">hexo server     <span class="comment"># 启动 hexo 服务器，访问 localhost:4000 查看效果</span></span><br></pre></td></tr></table></figure>
+<p>这样就得到了博客，存放在 blog 文件夹下。接下来看看文件夹内部的构造：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── _config.yml         <span class="comment"># 配置文件</span></span><br><span class="line">├── db.json             <span class="comment"># （可以忽略）</span></span><br><span class="line">├── node_modules/       <span class="comment"># node 模块</span></span><br><span class="line">├── package.json        <span class="comment"># （可以忽略）</span></span><br><span class="line">├── public/             <span class="comment"># 生成的静态页面存放路径</span></span><br><span class="line">├── scaffolds/          <span class="comment"># 页面/文章的模板</span></span><br><span class="line">├── <span class="built_in">source</span>/             <span class="comment"># 页面/文章的源码（markdown 文件）</span></span><br><span class="line">└── themes/             <span class="comment"># 主题目录</span></span><br></pre></td></tr></table></figure>
+<h3 id="文章写作">文章写作</h3><p>首先生成一篇新的文章：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo new <span class="string">"The very new start"</span></span><br></pre></td></tr></table></figure>
+<p>执行后在 <code>source/_posts/</code> 目录中会添加一个 markdown 文件：<code>The-very-new-start.md</code>。编辑这个文件来进行博客的写作。</p>
+<p>插播一句，不会用 Markdown 写作的童鞋可以查看 <a href="https://help.github.com/articles/markdown-basics/" target="_blank" rel="external">这里</a> 学习。（<a href="http://wowubuntu.com/markdown/" target="_blank" rel="external">这里</a> 是中文版）</p>
+<p>用以下指令来生成静态文件，在本地观察效果：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hexo generate</span><br><span class="line">hexo server     <span class="comment"># watch localhost:4000/</span></span><br></pre></td></tr></table></figure>
+<h3 id="部署到_Github">部署到 Github</h3><ol>
+<li><code>npm install --save hexo-deployer-git</code></li>
+<li><p>修改 <code>_config.yml</code> 文件中的 <code>deploy</code> 值（将 repository 改为你的 github repo 的地址）</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">deploy:&#10;   type: git&#10;   repository: git@github.com:allenfantasy/allenfantasy.github.io.git&#10;   branch: master</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>hexo deploy --generate</code> 生成静态文件，并将生成的内容推到 github 仓库中。</p>
+</li>
+</ol>
+<p>然后…访问 <a href="http://allenfantasy.github.io" target="_blank" rel="external">http://allenfantasy.github.io</a> 耶！一切顺利！</p>
+<p>接下来要考虑域名的事情了。</p>
+<h3 id="域名绑定_&amp;_DNS">域名绑定 &amp; DNS</h3><p>我需要将部署在 Github Page 的博客和 <a href="http://afantasy.ninja">http://afantasy.ninja</a> 绑定起来，同时在访问原来的 .io 域名时也可以跳转到 .ninja 域名。</p>
+<p>幸好 Github 早已看穿了一切，给出了完善的指南：</p>
+<ul>
+<li><a href="https://help.github.com/articles/adding-a-cname-file-to-your-repository/" target="_blank" rel="external">设置 CNAME</a></li>
+<li><a href="https://help.github.com/articles/tips-for-configuring-an-a-record-with-your-dns-provider/" target="_blank" rel="external">在域名提供商的后台设置中配置DNS</a></li>
+</ul>
+<p>其中，注意 CNAME 文件要创建在本地的 <code>source/</code> 目录下，这样在生成静态页面时，CNAME 会复制一份到生成后的目录下，从而在部署时可以部署到 Github.</p>
+<p>而 DNS 在设置后需要一定时间才能生效，快的话半小时左右，慢的可能要几个小时（但不会超过24小时）。</p>
+<p>在花了很多时间摸索得到以上的正解后，我终于在敲下 <a href="http://afantasy.ninja">http://afantasy.ninja</a> 后看到了和本地一模一样的博客首页，感动啊T^T</p>
+<p>但是…我想换个主题…</p>
+<h3 id="主题">主题</h3><ul>
+<li><a href="https://github.com/hexojs/hexo/wiki/Themes" target="_blank" rel="external">Github Wiki</a></li>
+<li><a href="https://hexo.io/themes/" target="_blank" rel="external">官网的主题</a></li>
+</ul>
+<p>自己找去吧…</p>
+<p>通常比较好的主题都有教如何安装的。如果需要在原主题基础上修改的话，最好是 fork 一份再慢慢改。</p>
+<p>（我果然是个懒人…）</p>
+<p>详细的内容就还是参考 <a href="http://ibruce.info/2013/11/22/hexo-your-blog/" target="_blank" rel="external">Bruce 的文章</a> 吧，也是够详细了…</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>在 第2届广州创客马拉松 的守夜期间，为了不让自己睡着，突然想起了要搭建自己的博客。</p>
+<p>有几个可选的方式：</p>
+<ul>
+<li>jekyll</li>
+<li>octopress</li>
+<li>hexo</li>
+<li>从头搭建一个</li>
+</u]]>
+    </summary>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[The very new start]]></title>
+    <link href="http://afantasy.ninja/2015/06/06/The-very-new-start/"/>
+    <id>http://afantasy.ninja/2015/06/06/The-very-new-start/</id>
+    <published>2015-06-05T20:25:36.000Z</published>
+    <updated>2015-06-05T20:40:07.000Z</updated>
+    <content type="html"><![CDATA[<p>不管如何追忆和缅怀，过去的总是过去式。<br>这里记录所有新的冒险。<br><a id="more"></a><br>从高三开始写网易博客到大学，凡是心情低落、情绪不稳、或者心里有些不得不说的事情时，都用写 blog 的方式来解决。现在看来，还是充斥了不少的负能量的。<br>随着各个好友的博客陆续停更，似乎在网易博客自言自语不再是一个好的选项（同时它的排版让我越来越不舒服），以及我还是比较喜欢简洁的主题（网易的太复杂了）。<br>所以作为码农/程序猿/攻城狮，是时候搭自己的窝了（尽管这还是太晚了）。</p>
+<p>这里会记录今后所有的冒险：去的地方、做的事情、写的代码、遇见的人。</p>
+<p>同时网易博客正式停更。私人的内容回归 Evernote，可以分享的就在这里了。</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>不管如何追忆和缅怀，过去的总是过去式。<br>这里记录所有新的冒险。<br>]]>
+    
+    </summary>
+    
+  </entry>
+  
+</feed>

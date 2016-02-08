@@ -1,0 +1,54 @@
+<!DOCTYPE html><html lang="zh-cn"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title> Hexo + Github Page 搭建博客 · A Fantasy Ninja</title><meta name="description" content="Hexo + Github Page 搭建博客 - Allen"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="short icon" href="/favicon.png"><link rel="stylesheet" href="/css/apollo.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600" type="text/css"></head><body><header><a href="/" class="logo-link"><img src="/favicon.png"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="http://weibo.com/allenfantasy" target="_blank" class="nav-list-link">WEIBO</a></li><li class="nav-list-item"><a href="https://github.com/allenfantasy" target="_blank" class="nav-list-link">GITHUB</a></li><li class="nav-list-item"><a href="/atom.xml" target="_self" class="nav-list-link">RSS</a></li></ul></header><section class="container"><div class="post"><article class="post-block"><h1 class="post-title">Hexo + Github Page 搭建博客</h1><div class="post-meta"><div class="post-time">2015年6月6日</div></div><div class="post-content"><p>在 第2届广州创客马拉松 的守夜期间，为了不让自己睡着，突然想起了要搭建自己的博客。</p>
+<p>有几个可选的方式：</p>
+<ul>
+<li>jekyll</li>
+<li>octopress</li>
+<li>hexo</li>
+<li>从头搭建一个</li>
+</ul>
+<p>由于最近用 Node 多一点（Ruby 的相当生疏），所以对 jekyll 和 octopress 不大有信心；而从头搭建一个又比较累（懒），加上<a href="http://threegoldstone.com/" target="_blank" rel="external">鑫磊也干了</a>，所以我还是用 hexo 吧。</p>
+<p><a href="https://hexo.io/" target="_blank" rel="external">Hexo</a> 是一个基于 Node 的博客生成工具，支持 Markdown 语法写作。可以阅读 <a href="http://ibruce.info/2013/11/22/hexo-your-blog/" target="_blank" rel="external">这篇文章</a> 来了解详细的各种折腾方法。</p>
+<p>对于 Windows 用户我会更加推荐 Hexo，因为在 Windows 上基于 Ruby 的应用可能会有些坑。<del>虽然我是一个 Mac 党，并没有这样的问题。</del></p>
+<p>本文主要记录我搭建本博客的基本步骤和流程，基于 Hexo 和 Github Page</p>
+<h3 id="购买域名">购买域名</h3><p>如果没有购买域名的话，基于 Github 的博客就只能跑在 <code>[username].github.io</code> 上了，而我的 Github 用户名又很长。。所以还是买一个域名吧。我用的是 <a href="https://www.namecheap.com/" target="_blank" rel="external">namecheap</a>，只需要登陆后，在首页输入想要的关键字，就可以查看到可选的域名列表，以及具体的价格。推荐大家买 <code>.me</code> 或者 <code>.us</code> 的域名，另外 <code>.ninja</code> 也挺好玩的。</p>
+<h3 id="安装_Hexo">安装 Hexo</h3><p>Hexo 是基于 Node 的博客工具。还没有安装 Node 的童鞋可以根据 <a href="https://cnodejs.org/topic/5338c5db7cbade005b023c98" target="_blank" rel="external">这个教程</a> 来安装。</p>
+<p>安装指令：<code>npm install -g hexo</code></p>
+<h3 id="利用_Hexo_搭建博客原型">利用 Hexo 搭建博客原型</h3><p>在命令行中，通过以下的指令来生成博客：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">hexo init blog  <span class="comment"># 生成一个博客的原型，存放在 blog 文件夹下</span></span><br><span class="line"><span class="built_in">cd</span> blog</span><br><span class="line">npm install     <span class="comment"># 安装 npm 包依赖</span></span><br><span class="line">hexo generate   <span class="comment"># 生成静态页面</span></span><br><span class="line">hexo server     <span class="comment"># 启动 hexo 服务器，访问 localhost:4000 查看效果</span></span><br></pre></td></tr></table></figure>
+<p>这样就得到了博客，存放在 blog 文件夹下。接下来看看文件夹内部的构造：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">├── _config.yml         <span class="comment"># 配置文件</span></span><br><span class="line">├── db.json             <span class="comment"># （可以忽略）</span></span><br><span class="line">├── node_modules/       <span class="comment"># node 模块</span></span><br><span class="line">├── package.json        <span class="comment"># （可以忽略）</span></span><br><span class="line">├── public/             <span class="comment"># 生成的静态页面存放路径</span></span><br><span class="line">├── scaffolds/          <span class="comment"># 页面/文章的模板</span></span><br><span class="line">├── <span class="built_in">source</span>/             <span class="comment"># 页面/文章的源码（markdown 文件）</span></span><br><span class="line">└── themes/             <span class="comment"># 主题目录</span></span><br></pre></td></tr></table></figure>
+<h3 id="文章写作">文章写作</h3><p>首先生成一篇新的文章：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo new <span class="string">"The very new start"</span></span><br></pre></td></tr></table></figure>
+<p>执行后在 <code>source/_posts/</code> 目录中会添加一个 markdown 文件：<code>The-very-new-start.md</code>。编辑这个文件来进行博客的写作。</p>
+<p>插播一句，不会用 Markdown 写作的童鞋可以查看 <a href="https://help.github.com/articles/markdown-basics/" target="_blank" rel="external">这里</a> 学习。（<a href="http://wowubuntu.com/markdown/" target="_blank" rel="external">这里</a> 是中文版）</p>
+<p>用以下指令来生成静态文件，在本地观察效果：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hexo generate</span><br><span class="line">hexo server     <span class="comment"># watch localhost:4000/</span></span><br></pre></td></tr></table></figure>
+<h3 id="部署到_Github">部署到 Github</h3><ol>
+<li><code>npm install --save hexo-deployer-git</code></li>
+<li><p>修改 <code>_config.yml</code> 文件中的 <code>deploy</code> 值（将 repository 改为你的 github repo 的地址）</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">deploy:&#10;   type: git&#10;   repository: git@github.com:allenfantasy/allenfantasy.github.io.git&#10;   branch: master</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>hexo deploy --generate</code> 生成静态文件，并将生成的内容推到 github 仓库中。</p>
+</li>
+</ol>
+<p>然后…访问 <a href="http://allenfantasy.github.io" target="_blank" rel="external">http://allenfantasy.github.io</a> 耶！一切顺利！</p>
+<p>接下来要考虑域名的事情了。</p>
+<h3 id="域名绑定_&amp;_DNS">域名绑定 &amp; DNS</h3><p>我需要将部署在 Github Page 的博客和 <a href="http://afantasy.ninja">http://afantasy.ninja</a> 绑定起来，同时在访问原来的 .io 域名时也可以跳转到 .ninja 域名。</p>
+<p>幸好 Github 早已看穿了一切，给出了完善的指南：</p>
+<ul>
+<li><a href="https://help.github.com/articles/adding-a-cname-file-to-your-repository/" target="_blank" rel="external">设置 CNAME</a></li>
+<li><a href="https://help.github.com/articles/tips-for-configuring-an-a-record-with-your-dns-provider/" target="_blank" rel="external">在域名提供商的后台设置中配置DNS</a></li>
+</ul>
+<p>其中，注意 CNAME 文件要创建在本地的 <code>source/</code> 目录下，这样在生成静态页面时，CNAME 会复制一份到生成后的目录下，从而在部署时可以部署到 Github.</p>
+<p>而 DNS 在设置后需要一定时间才能生效，快的话半小时左右，慢的可能要几个小时（但不会超过24小时）。</p>
+<p>在花了很多时间摸索得到以上的正解后，我终于在敲下 <a href="http://afantasy.ninja">http://afantasy.ninja</a> 后看到了和本地一模一样的博客首页，感动啊T^T</p>
+<p>但是…我想换个主题…</p>
+<h3 id="主题">主题</h3><ul>
+<li><a href="https://github.com/hexojs/hexo/wiki/Themes" target="_blank" rel="external">Github Wiki</a></li>
+<li><a href="https://hexo.io/themes/" target="_blank" rel="external">官网的主题</a></li>
+</ul>
+<p>自己找去吧…</p>
+<p>通常比较好的主题都有教如何安装的。如果需要在原主题基础上修改的话，最好是 fork 一份再慢慢改。</p>
+<p>（我果然是个懒人…）</p>
+<p>详细的内容就还是参考 <a href="http://ibruce.info/2013/11/22/hexo-your-blog/" target="_blank" rel="external">Bruce 的文章</a> 吧，也是够详细了…</p>
+</div></article></div></section><footer><div class="paginator"><a href="/2016/02/05/how-to-create-a-module-in-drupal-7/" class="prev">上一篇</a><a href="/2015/06/06/The-very-new-start/" class="next">下一篇</a></div><div class="copyright"><p>© 2015 - 2016 <a href="http://afantasy.ninja">Allen</a>, unless otherwise noted.</p></div></footer><script src="https://cdn.bootcss.com/mathjax/2.5.3/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script></body></html>

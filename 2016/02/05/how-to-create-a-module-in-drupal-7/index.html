@@ -1,0 +1,36 @@
+<!DOCTYPE html><html lang="zh-cn"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title> 如何在 Drupal 7 中构建模块 [译] · A Fantasy Ninja</title><meta name="description" content="如何在 Drupal 7 中构建模块 [译] - Allen"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="short icon" href="/favicon.png"><link rel="stylesheet" href="/css/apollo.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600" type="text/css"></head><body><header><a href="/" class="logo-link"><img src="/favicon.png"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="http://weibo.com/allenfantasy" target="_blank" class="nav-list-link">WEIBO</a></li><li class="nav-list-item"><a href="https://github.com/allenfantasy" target="_blank" class="nav-list-link">GITHUB</a></li><li class="nav-list-item"><a href="/atom.xml" target="_self" class="nav-list-link">RSS</a></li></ul></header><section class="container"><div class="post"><article class="post-block"><h1 class="post-title">如何在 Drupal 7 中构建模块 [译]</h1><div class="post-meta"><div class="post-time">2016年2月5日</div></div><div class="post-content"><p>注1：本文翻译自 Drupal 官方网站关于构建模块的<a href="https://www.drupal.org/developing/modules/7" title="Drupal 7 模块指南" target="_blank" rel="external">指南</a>，结合实际操作有部分修改和简化。</p>
+<p>注2：阅读本文需要对 Drupal 有基本的了解：知道如何使用 Drupal 的管理后台，以及安装模块。</p>
+<h3 id="Getting_Started">Getting Started</h3><h4 id="预备工作">预备工作</h4><ol>
+<li>给模块取个名字。模块名建议用 “下划线+小写“ 的方式，以避免不必要的问题，比如 my_custom_module</li>
+<li>创建一个文件夹作为模块的文件夹</li>
+<li>在文件夹中新建两个 php 文件，分别是 <code>my_custom_module.module</code> 和 <code>my_custom_module.info</code>。module 文件是该模块的主文件入口，info 文件是该模块的定义，记录关于该模块的元信息。</li>
+<li><p>初始化 <code>my_custom_module.info</code> 文件。info 文件的通用模板为：</p>
+<figure class="highlight vbnet"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">name = My <span class="keyword">Custom</span> <span class="keyword">Module</span></span><br><span class="line">description = A description <span class="keyword">of</span> what your <span class="keyword">module</span> does</span><br><span class="line">core = <span class="number">7.</span>x</span><br></pre></td></tr></table></figure>
+<p>这里的 name 和 description 会显示在网站后台的模块管理界面中，作为模块的名字和介绍。关于 info 文件的详细介绍可以参考相应的 <a href="http://drupal.org/node/542202" title="info 文件的介绍" target="_blank" rel="external">Drupal 文档</a>.</p>
+</li>
+<li><p>初始化 <code>my_custom_module.module</code> 文件。在没有添加任何功能前，先在文件中加入一行 php 的开头标签（不需要结尾，如果加入结尾标签可能会导致一些运行问题）</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// my_custom_module.module</span></span><br><span class="line"><span class="preprocessor">&lt;?php</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>将模块的整个文件夹放入 <code>sites/all/modules</code> 文件夹中</p>
+</li>
+<li>这时在 Drupal 的管理后台中，你应该能够看到一个名字为 “My Custom Module” 的模块。启用它并保存配置。</li>
+</ol>
+<h4 id="实现第一个钩子"><a href="https://www.drupal.org/node/1095546" title="Drupal 7 模块指南 - 钩子函数" target="_blank" rel="external">实现第一个钩子</a></h4><p>接下来我们要利用通过 “钩子函数”（hooks） 来在模块中实现某些特定的功能。钩子函数的命名方式为：<code>{module_name}_{function_name}</code>，其中 <code>module_name</code> 是模块的名字，而 <code>function_name</code> 是预定义的钩子函数的后缀。Drupal 会调用这些钩子函数，并传入相应的特定数据。</p>
+<p>为了便于展示，我们来实现一个简单的钩子：<a href="hook_help-doc"><code>hook_help</code></a>，这个钩子可以让我们向使用者提供关于这个模块的帮助信息。要实现这个函数，我们就要用模块名字来取代钩子命名中的 “hook”，也就是实现一个叫做 <code>my_custom_module_help</code> 的函数，代码如下：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">&lt;?php</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">my_custom_module_help</span><span class="params">(<span class="variable">$path</span>, <span class="variable">$arg</span>)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">switch</span>(<span class="variable">$path</span>) &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="string">"admin/help#my_custom_module"</span>:</span><br><span class="line">      <span class="keyword">return</span> <span class="string">"&lt;p&gt;Do something&lt;/p&gt;"</span>;</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个钩子函数接受两个参数：</p>
+<ul>
+<li><code>$path</code> 参数是用户查看模块帮助时所在的位置，即当前所处的 url 地址，这个参数可以是通配符</li>
+<li><code>$arg</code> 当 <code>$path</code> 为通配符时的匹配参数</li>
+</ul>
+<p>在这个例子中我们仅匹配特定的路径，所以仅使用 <code>$path</code> 参数（更多用法可以直接查看 Drupal 的<a href="https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_help/7" title="hook_help 钩子的文档" target="_blank" rel="external">文档</a>）。</p>
+<h4 id="检查钩子是否正确工作">检查钩子是否正确工作</h4><p>在模块管理界面查看 “My Custom Module” 这个模块，这时应该能够看到一个 “help” 的链接（首先要确保启用了 Help 这个核心模块），点击进入模块的帮助页面，查看钩子函数返回的文字内容。</p>
+<p>如果没有看到该链接，尝试先禁用模块，再重新启用。</p>
+<p>到这里为止，我们就顺利的搭建模块了！实现钩子函数是模块最常用的使用方法。</p>
+<h3 id="Reference">Reference</h3><ol>
+<li><a href="https://www.drupal.org/developing/modules/7" title="Drupal 7 模块指南" target="_blank" rel="external">Drupal 7 模块指南</a></li>
+<li><a href="https://www.drupal.org/node/1095546" title="Drupal 7 模块指南 - 钩子函数" target="_blank" rel="external">Drupal 7 模块指南 - 钩子函数</a></li>
+<li><a href="http://drupal.org/node/542202" title="info 文件的介绍" target="_blank" rel="external">Drupal 7 模块的 info 文件</a></li>
+<li><a href="https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_help/7" title="hook_help 钩子的文档" target="_blank" rel="external">Drupal 7 hook_help 函数</a></li>
+</ol>
+</div></article></div></section><footer><div class="paginator"><a href="/2016/02/06/what-i-am-thinking-before-asking-questions/" class="prev">上一篇</a><a href="/2015/06/06/Hexo-Github-Page-搭建博客/" class="next">下一篇</a></div><div class="copyright"><p>© 2015 - 2016 <a href="http://afantasy.ninja">Allen</a>, unless otherwise noted.</p></div></footer><script src="https://cdn.bootcss.com/mathjax/2.5.3/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script></body></html>
