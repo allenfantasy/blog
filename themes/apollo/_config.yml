@@ -1,8 +1,7 @@
 menu:
     Blog: /
-    Weibo: http://weibo.com/allenfantasy
     GitHub: https://github.com/allenfantasy
-    Rss: /atom.xml
+    Diary: /diary
 
 favicon: /favicon.png
 logo: /favicon.png
