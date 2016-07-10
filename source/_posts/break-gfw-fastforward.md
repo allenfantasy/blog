@@ -118,10 +118,18 @@ Windows 和 Linux 的用户实在抱歉。
 5. 用 Chrome 浏览器，并在浏览器上安装 SwitchyOmega 插件，并把插件调整为 `auto switch` 模式
 6. 尽情的上网吧。
 
+# iOS
+
+之前我错过了~~大名鼎鼎~~死贵死贵的 Surge, 有点遗憾。今天在群里看到有童鞋推荐 Shadowrocket，亲测非常方便好用，在这里补充一下：
+
+1. 在 AppStore 搜索 `Shadowrocket` 并下载（6RMB，相比 68 的 Surge 算是很良心的价格了）
+2. 跟着 [这篇教程](https://ii-i.org/archives/859) 往下做，最方便的方法就是在电脑端（如果你在电脑上已经配置了 shadowsocks 的话）生成二维码，然后直接扫描一下就可以了。
+3. （选做）配置自动模式（On Demand）点击 Settings - On Demand，将 `On Demand` 的选项卡打开即可。
+
 # 那你在用什么?
 
-* Mac 上用 Shadowsocks （非常完美）
-* iOS 上用云梯 VPN。我用的是移动 4G，只能说时灵时不灵吧。
+* Mac 上用 ShadowsocksX （非常完美）
+* ~~iOS 上用云梯 VPN。我用的是移动 4G，只能说时灵时不灵吧。~~ iOS: long live Shadowrocket!!!
 
 # Reference
 
