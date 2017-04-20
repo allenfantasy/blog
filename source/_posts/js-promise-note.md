@@ -7,8 +7,6 @@ tags:
 一直对 Promise 这个概念感到迷迷糊糊，实在是受不了了，决定系统的过一次相关的知识点。
 <!--more-->
 
-# JS Promise Note
-
 以下笔记主要基于著名的 [JavaScript 迷你书(中文版)](http://liubin.org/promises-book/)，感谢原作者 @azu 和翻译者 @liubin!
 
 本文将不定期陆续更新。
