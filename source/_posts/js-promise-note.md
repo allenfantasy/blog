@@ -1,4 +1,5 @@
 title: JS Promise Note
+date: 2017-04-20 17:50:00
 tags:
 - JS
 - Frontend
