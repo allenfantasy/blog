@@ -3,13 +3,17 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "deploy": "hexo deploy -g"
+    "dev": "hexo server",
+    "g": "hexo generate -w",
+    "theme": "cd themes/apollo && gulp",
+    "deploy": "hexo deploy -g",
+    "reinstall": "rm -rf ./node_modules && yarn add hexo --no-optional && yarn"
   },
   "hexo": {
-    "version": "3.1.1"
+    "version": "3.3.1"
   },
   "dependencies": {
-    "hexo": "^3.1.0",
+    "hexo": "^3.3.1",
     "hexo-browsersync": "^0.2.0",
     "hexo-deployer-git": "0.0.4",
     "hexo-generator-archive": "^0.1.2",
