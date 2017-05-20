@@ -7,7 +7,7 @@ if theme.duoshuo
             ds.type = 'text/javascript';ds.async = true;
             ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
             ds.charset = 'UTF-8';
-            (document.getElementsByTagName('head')[0] 
+            (document.getElementsByTagName('head')[0]
              || document.getElementsByTagName('body')[0]).appendChild(ds);
         })();
 
@@ -15,13 +15,35 @@ if theme.duoshuo
 if theme.disqus
     #disqus_thread
     script.
-        var disqus_shortname = '#{theme.disqus}';
-        var disqus_identifier = '#{page.path}';
-        var disqus_title = '#{page.title}';
-        var disqus_url = '#{config.url}/#{page.path}';
-        (function() {
-            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        /**
+        *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+        *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+
+        var disqus_config = function () {
+            this.page.url = '#{config.url}/#{page.path}';
+            // Replace PAGE_URL with your page's canonical URL variable
+            this.page.identifier = '#{page.path}';
+            // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+        };
+        (function() { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://#{theme.disqus}.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
         })();
+
+    noscript
+        = "Please enable JavaScript to view the"
+        a(href="https://disqus.com/?ref_noscript") comments powered by Disqus
+
+    //- script.
+    //-     var disqus_shortname = '#{theme.disqus}';
+    //-     var disqus_identifier = '#{page.path}';
+    //-     var disqus_title = '#{page.title}';
+    //-     var disqus_url = '#{config.url}/#{page.path}';
+    //-     (function() {
+    //-         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    //-         dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    //-         (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    //-     })();
     script(id='dsq-count-scr' src='//#{theme.disqus}.disqus.com/count.js' async)
