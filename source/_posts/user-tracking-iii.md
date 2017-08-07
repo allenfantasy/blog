@@ -74,7 +74,7 @@ if (typeof document.hidden !== "undefined") { // Opera 12.10 and Firefox 18 and 
 }
 
 function handleVisibilityChange() {
-  if (document[hidden]) {file:///Users/allenwu/Desktop/no-fuck-say.jpeg
+  if (document[hidden]) {
     // 停止心跳...
   } else {
     // 启动心跳...
