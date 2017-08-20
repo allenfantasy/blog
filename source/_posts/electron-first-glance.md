@@ -1,5 +1,7 @@
 title: Electron 使用初体验
-tags: JavaScript, Electron
+tags:
+- JavaScript
+- Electron
 ---
 关于 Electron 的流水账记录
 <!--more-->
