@@ -1,5 +1,5 @@
 title: 网站统计那些事（二）：统计脚本实现（上）
-date: 2017-05-08
+date: 2017-05-08 14:01
 tags:
 - JavaScript
 - user tracking
