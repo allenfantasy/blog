@@ -9,6 +9,19 @@ When studying the CSS framework [Bluma](bluma.io), I found that it use a very sm
 
 ### Color Luminance
 
+Steven Bradley wrote an great article about [color luminance](http://vanseodesign.com/web-design/color-luminance/), and here are some details:
+
+1. Our eyes have rods（视杆细胞）and cones（视锥细胞）to perceive light/dark as well as different color information; rods are responsible for seeing in low light and are sensitive to light/dark, while cones are responsible for distinguishing different colors. Moreover we have S-cones (blue), M-cones (green) and L-cones (red) for short, medium and long wavelength. -- three primary colors.
+2. `Luminance` is the measurement of the intensity of light that reaches our eye, while `brightness` and `value` are only the perception of an object's luminance. `Lightness` is the brightness relative to the brightness of a similarly illuminated white.
+3. Our perception of lightness (or brightness) don’t scale linearly with luminance. The perceived luminance is dependent on both light intensity and the specific wavelength of that light (a.k.a type of color).
+4. Every color has its own natural luminance levels.
+5. Saturation also affects luminance. If you reduce the saturation of a pure color to 0% the result is a 50% grey with a 50% value for luminance.
+6. differences between HSL, HSB, and HSV:
+    * HSB/V is measuring **the amount of light**
+    * HSL is measuring **the amount of white**
+
+#### Quantitive Implementation
+
 From [WCAG's Definition](http://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef), the `relative luminance` is:
 
 > the relative brightness of any point in a colorspace, normalized to 0 for darkest black and 1 for lightest white.
@@ -28,6 +41,7 @@ WCAG also provides the formula for luminance:
 > * RsRGB = R8bit / 255
 > * GsRGB = G8bit / 255
 > * BsRGB = B8bit / 255
+
 
 [Bluma](bluma.io) strictly implements the spec above by having such Sass function:
 
@@ -63,7 +77,23 @@ From [CSS Tricks' Definition](https://css-tricks.com/snippets/sass/luminance-col
 
 NOTE: WCAG = Web Content Accessibility Guidelines
 
-### HSL
+### This video blows my mind
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/kVny7BswdqY" frameborder="0" allowfullscreen></iframe>
+
+Notice 3:50 -- that is crazy. Remember that our eyes could be cheated.
+
+### Color Models
+
+[Colorizer](http://colorizer.org/) have listed all common color models.
+
+*TODO*:
+
+* RGB
+* HSB/HSV
+* CMYK
+
+#### HSL
 
 [HSL和HSV色彩空间](https://zh.wikipedia.org/wiki/HSL%E5%92%8CHSV%E8%89%B2%E5%BD%A9%E7%A9%BA%E9%97%B4#.E4.BB.8EHSL.E5.88.B0RGB.E7.9A.84.E8.BD.AC.E6.8D.A2)
 
@@ -71,11 +101,15 @@ NOTE: WCAG = Web Content Accessibility Guidelines
 
 ![](https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Hsl-hsv_models.svg/800px-Hsl-hsv_models.svg.png)
 
+Colorizer 使用了圆锥表示 HSL：
+
+![](http://colorizer.org/img/hsl.png)
+
 * Hue（H），色相，是色彩的基本属性，即平时所说的颜色名称
 * Saturation（S），饱和度，是指色彩的纯度，越高色彩越纯，低则逐渐变灰，取 0~100% 的数值
 * Lightness（L），亮度，取 0~100%
 
-### RGB => HSL
+#### RGB => HSL
 
 [Algorithm in CSS3 Specification](https://www.w3.org/TR/css3-color/#hsl-color)
 
