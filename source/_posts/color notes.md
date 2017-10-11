@@ -152,3 +152,28 @@ function hslToRgb(h, s, l){
     return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
 }
 ```
+
+---
+
+### Color Meaning
+
+http://vanseodesign.com/web-design/color-meaning/
+
+> ... there is no substantive evidence that support a universal system of color meaning. It’s not that colors themselves have specific meaning, but rather that **we have culturally assigned meanings to them**.
+
+> ... it's important to understand who your target audience is and how your audience attaches meaning to color.
+
+* **warm colors:** red, orange, yellow -- passion, energy, impulsiveness, happiness, coziness and comfort
+* **cool colors:** green, blue, violet -- calm, trust, professionalism, also sadness and melancholy
+
+
+### TODO
+
+* [Color Theory, The Color Wheel And Color Schemes](http://vanseodesign.com/web-design/color-theory/)
+* [Whitespace: Less Is More In Web Design](http://vanseodesign.com/web-design/whitespace/)
+* [Design Basics: Repetition To Create Visual Themes](http://vanseodesign.com/web-design/design-basics-repetition/)
+* [Color Theory Basics](http://www.color-wheel-pro.com/color-theory-basics.html)
+* [Basic techniques for combining colors](http://www.tigercolor.com/color-lab/color-theory/color-harmonies.htm)
+* [Luminance is More Important than Color, The Refracted Light](http://therefractedlight.blogspot.jp/2010/06/luminance-is-more-important-than-color.html)
+* [Color Systems — Part 1](http://vanseodesign.com/web-design/color-systems-1/)
+* [Color Systems — Part 2](http://vanseodesign.com/web-design/color-systems-2/)
