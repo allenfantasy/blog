@@ -1,4 +1,4 @@
-title: Notes about ... color
+title: Color, the known and unknown
 
 tags:
 - FE
