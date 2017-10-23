@@ -87,11 +87,77 @@ Notice 3:50 -- that is crazy. Remember that our eyes could be cheated.
 
 [Colorizer](http://colorizer.org/) have listed all common color models.
 
-*TODO*:
+---
 
-* RGB
-* HSB/HSV
-* CMYK
+#### RGB
+
+From [Wikipedia](https://en.wikipedia.org/wiki/RGB_color_model):
+
+> The **RGB color model** is an addictive color model in which red, green and blue light are added together in various ways to reproduce a broad array of colors.
+> ...
+> The RGB color model is *addictive* in the sense that the three light beams are added together, and their light spectra add, wavelength by wavelength, to make the final color's spectrum. This is essentially opposite to the *subtractive* color model that applies to paints, inks, dyes and other substances whose colors depends on *reflecting* the light under which we see them.
+> ...
+
+##### why R,G,B
+
+> The choice of primary colors (red, green, blue) is related to the physiology of the human eye; good primaries are stimuli that maximize the difference between the responses of the cone cells of the human retina to light of different wavelengths, and that thereby make a large color triangle.
+> ...
+> The difference in the signals received from the three kinds allows the brain to differentiate a wide gamut of different colors.
+
+![](https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/CIExy1931_sRGB_gamut_D65.png/440px-CIExy1931_sRGB_gamut_D65.png)
+
+> The color triangle represents the range of colors which could be reproduced by additive mixing of non-negative amounts of three primary colors.
+
+[为什么 “红、黄、蓝” 是三原色？而不是其他颜色？](https://www.zhihu.com/question/19646016)
+[光的三原色和颜料的三原色不一样吗？为什么？](https://www.zhihu.com/question/23839549)
+
+> “原色”的指定并没有唯一的选法，因为就理论上而言，凡是彼此之间无法替代的颜色都可以被选为“原色”，只是目前普遍认定“光的三原色”为红绿蓝。
+
+##### numeric representations
+
+* float
+* percentage
+* integer range (0,255) - decimal / hexadecimal
+* larger integer ranges for each primary color (High-end digital image equipment)
+
+**[Concept] illuminant**
+
+From Wikipedia [Standard Illuminant](https://en.wikipedia.org/wiki/Standard_illuminant#Illuminant_series_D):
+
+> The International Commission on Illumination (usually abbreviated CIE for its French name) is th body responsible for publishing all of the well-known standard illuminants.
+
+There are many standards like Illuminant A, B, C ... The most common used one is called **Illuminant D**, which:
+
+> ... represents phases of daylight, ... the D series of illuminants are constructed to represent natural daylight. They are difficult to produce artificially, but are easy to characterized mathematically.
+
+##### What is white?
+
+[White Point](https://en.wikipedia.org/wiki/White_point)
+
+> A white point is a set of tristimulus values (a set of values of 3 primary colors) or chromaticity coordinates that *serve to define the color "white"* in image capture, encoding, or reproduction. Depending on the application, different definitions of white are needed to give acceptable results.
+
+SPD = Spectral Power Distribution (光谱能量分布??)
+
+* [D65](https://en.wikipedia.org/wiki/Illuminant_D65)
+* [Subtractive color](https://zh.wikipedia.org/wiki/%E6%B8%9B%E8%89%B2%E6%B3%95)
+* [Chromaticity](https://en.wikipedia.org/wiki/Chromaticity)
+
+`色度(Colorfulness/Chroma/Saturation)`, `色相(Hue)`
+
+*色度* 指的是色彩的纯度，也叫 *饱和度* 或者 *彩度*。
+
+---
+
+#### CMYK
+
+[CMYK - Wikipedia](https://en.wikipedia.org/wiki/CMYK_color_model)
+
+> The CMYK color model (process color, four color) is a subtractive color model, used in color printing, and is also used to describe the printing process itself.
+
+* C - Cyan
+* M - Magenta
+* Y - Yellow
+* K - Key (black)
 
 #### HSL
 
@@ -166,9 +232,10 @@ http://vanseodesign.com/web-design/color-meaning/
 * **warm colors:** red, orange, yellow -- passion, energy, impulsiveness, happiness, coziness and comfort
 * **cool colors:** green, blue, violet -- calm, trust, professionalism, also sadness and melancholy
 
-
 ### TODO
 
+* HSB/HSV
+* HSI (Hue, Saturation, Intensity) ???
 * [Color Theory, The Color Wheel And Color Schemes](http://vanseodesign.com/web-design/color-theory/)
 * [Whitespace: Less Is More In Web Design](http://vanseodesign.com/web-design/whitespace/)
 * [Design Basics: Repetition To Create Visual Themes](http://vanseodesign.com/web-design/design-basics-repetition/)
