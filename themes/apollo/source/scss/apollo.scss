@@ -9,6 +9,7 @@
 @import "_partial/mq";
 @import "_partial/copyright";
 
+//=== Overwrite ===//
 @mixin headerlink() {
   a:after {
     content: ' ';
@@ -28,6 +29,7 @@
 }
 
 .post-content {
+  word-break: break-word;
   h2, h3, h4 {
     @include headerlink();
   }
