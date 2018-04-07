@@ -29,9 +29,9 @@ co 具体做的事情：
 
 1. 接受一个 generator 作为输入，输出一个 Promise 对象
 2. 遍历整个 generator（即不断的调用 next）
-   * 在遍历结束时（即 next 返回的对象 `done: false`）进行 resolve，resolve 所持有的值是最后一个 next 输出的 `value`
-   * 在遍历过程中出现错误则 reject
-3. 仅支持 generator 函数中 yield 非空对象（不支持 primitive types 如 number, string 等），具体查看 co 文档中 [Yieldables](https://github.com/tj/co#yieldables) 部分
+* 在遍历结束时（即 next 返回的对象 `done: false`）进行 resolve，resolve 所持有的值是最后一个 next 输出的 `value`
+* 在遍历过程中出现错误则 reject
+1. 仅支持 generator 函数中 yield 非空对象（不支持 primitive types 如 number, string 等），具体查看 co 文档中 [Yieldables](https://github.com/tj/co#yieldables) 部分
 
 来看看核心代码（省去了一些无关的注释，实际核心代码只有几十行）：
 
@@ -346,6 +346,10 @@ promise2 = promise1.then(onFulfilled, onRejected)
 我们再来重新看 bluebird 作者的原话，就不难理解 Promise A+ 规范的问题是什么了：
 
 >   这和当前规范中的说法不一致，`promise` 现在（的状态）永远不会是 pending, fulfilled 或者是 rejected，它根本就没有自己的状态。如果它有的话，那就意味着 `x` 必须在状态改变时通知 `promise` ，这样 `promise` 才可以修改它自身的状态，**这就意味着 `x` 必须要保留对 `promise` 的引用，这样就导致了最初的（内存）泄漏。**
+
+#### 所以，co 是怎么修复内存泄露的？
+
+回到最初提出的关于 co 的问题，通过 [diff](https://github.com/tj/co/pull/182/files) 我们可以看到，修复的关键在于修改 `onFulfilled` 和 `onRejected` 两个方法，让它们不要返回一个新的 Promise，这样就不会触发 Promise 解析过程，也就规避掉了刚才提到的内存泄漏的问题。
 
 #### Promise Order ??
 
