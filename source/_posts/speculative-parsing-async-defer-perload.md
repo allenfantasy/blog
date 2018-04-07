@@ -8,14 +8,17 @@ tags:
 本文是关于 @mactavish 学弟在众成翻译上翻译的文章 [更快地构建 DOM: 使用预解析, async, defer 以及 preload ★ Mozilla Hacks – the Web developer blog](http://www.zcfy.cc/article/building-the-dom-faster-speculative-parsing-async-defer-and-preload-x2605-mozilla-hacks-8211-the-web-developer-blog-4224.html) 的阅读笔记。特此感谢。
 <!--more-->
 
+
 ### Parsing
+
+首先我们需要了解浏览器正常的文档解析流程（Parsing）：
 
 * 浏览器引擎的解析器会将 HTML 转换成 DOM（解析，DOM 的构建）
 * 在解析 HTML 字符串的过程中，DOM 节点逐个被添加到树中
 * 在 DOM 中，对象被关联在树中用户捕获标签之间的父子关系
 * CSS 样式被映射到 [CSSOM](https://developer.mozilla.org/en-US/docs/Web/API/CSS_Object_Model) 上
     * CSS 规则会互相覆盖，所以浏览器引擎需要进行复杂计算，以确定 CSS 代码如何应用到 DOM
-    * CSS 可能会阻塞解析
+    * CSS 可能会阻塞解析：
         * 当解析器获取一个 `<script>` 标签时，DOM 将等待 JavaScript 执行完毕后继续构建；
         * 若有 CSS 样式表先于该标签，则该标签的 JavaScript 代码将等待 CSS 下载，解析，且 CSSOM 可以使用时，才会执行
     * CSS 会阻塞 DOM 的渲染：直到 DOM 和 CSSOM 准备好之前，浏览器什么都不会显示。 
@@ -55,7 +58,9 @@ tags:
 
 ### 预解析 Speculative Parsing
 
-> 它的概念是：虽然在执行脚本时构建 DOM 是不安全的，但是你仍然可以解析 HTML 来查看其它需要检索的资源。找到的文件会被添加到一个列表里并开始在后台并行地下载。当脚本执行完毕之后，这些文件很可能已经下载完成了。
+> 它的概念是：虽然在执行脚本时构建 DOM 是不安全的，但是你仍然可以解析 HTML 来查看其它需要检索的资源。找到的文件会被添加到一个列表里并开始 **在后台并行地下载** 。当脚本执行完毕之后，这些文件很可能已经下载完成了。
+
+~~说人话：就是会提前的下载 HTML 页面上声明了的脚本...~~
 
 *下载是并行的，执行是先后的*，以这种方式触发的下载请求称为”预测“，因为很有可能脚本还是会改变 HTML 结构，导致预测的浪费（即下载的脚本是无效的，并不会被执行），但这并不常见，所以预解析仍然可以带来很大的性能提升。
 
@@ -67,9 +72,9 @@ tags:
     * 来自 `<img>` 标签的图片
     * Firefox 预加载 video 元素 `poster` 属性
     * Chrome/Safari 预加载 `@import` 内联样式
-* 浏览器并行下载文件的数量限制（HTTP 1.x）
+* 预加载会受到浏览器并行下载文件的数量限制（HTTP 1.x），如 Chrome 浏览器最多只能并行下载6个文件。
 * 预解析时，浏览器不会执行内联的 JS 代码块。
-* 用 JS 加载不那么重要的内容来避免预解析
+* 用 JS 加载不那么重要的内容来避免预解析，这里的意思是说，页面上某些不重要的脚本，相比于其他必需脚本来说，是应该 **迟下载，迟执行** 的，通过用 JS 动态加载它们，它们就不会一开始出现在 HTML 文档的 `<script>` 标签中，则浏览器的预解析不会处理它们（相对的就会更优先的解析必需脚本）
 
 [MDN 的文档](https://developer.mozilla.org/en-US/docs/Web/HTML/Optimizing_your_pages_for_speculative_parsing) 中提到：
 
@@ -84,7 +89,7 @@ tags:
 * `defer` 脚本在 HTML 文档解析完全完成之后才开始执行，处在 `DOMContentLoaded` 事件之前。保证脚本会按照它在 HTML 中出现的顺序执行，且不会阻塞解析
     * 但根据红宝书的说法，在一个页面中最好只有一个带 `defer` 的脚本；保险起见，在 `DOMContentLoaded` 的事件回调中执行实际的业务代码：
     
-    > HTML5规范要求脚本按照它们出现的先后顺序执行，因此第一个延迟脚本会先于第二个延迟脚本执行，而这两个脚本会先于DOMContentLoaded事件执行。在现实当中，延迟脚本并不一定会按照顺序执行，也不一定会在 DOMContentLoaded 时间触发前执行，因此最好只包含一个延迟脚本。
+    > HTML5规范要求脚本按照它们出现的先后顺序执行，因此第一个延迟脚本会先于第二个延迟脚本执行，而这两个脚本会先于DOMContentLoaded事件执行。在现实当中，延迟脚本并不一定会按照顺序执行，也不一定会在 DOMContentLoaded 事件触发前执行，因此最好只包含一个延迟脚本。
     
     * 红宝书的说法是有实锤的，在 [这个issue中](https://github.com/h5bp/lazyweb-requests/issues/42#issuecomment-1776866) 有人做了实验确认了 Firefox 在处理 `defer` 属性脚本时，脚本的代码是在 `DOMContentLoaded` 事件后才执行的；同时，在 IE<=9 时，`defer` 脚本的顺序执行也不能保证。
  
