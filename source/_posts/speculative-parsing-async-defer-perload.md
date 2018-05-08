@@ -2,7 +2,6 @@ title: HTML - 预解析, async/defer 和 preload
 date: 2018-01-13
 tags:
 - Browser
-- Frontend
 ---
 
 本文是关于 @mactavish 学弟在众成翻译上翻译的文章 [更快地构建 DOM: 使用预解析, async, defer 以及 preload ★ Mozilla Hacks – the Web developer blog](http://www.zcfy.cc/article/building-the-dom-faster-speculative-parsing-async-defer-and-preload-x2605-mozilla-hacks-8211-the-web-developer-blog-4224.html) 的阅读笔记。特此感谢。
