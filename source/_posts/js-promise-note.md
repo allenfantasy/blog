@@ -1,8 +1,7 @@
 title: JS Promise Note
 date: 2017-04-20 17:50:00
 tags:
-- JS
-- Frontend
+- JavaScript
 ---
 
 一直对 Promise 这个概念感到迷迷糊糊，实在是受不了了，决定系统的过一次相关的知识点。
