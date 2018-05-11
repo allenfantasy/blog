@@ -1,6 +1,0 @@
-{
-  "src": "/Users/allenwu/afantasy.ninja/cdn",
-  "dest": "qiniu:access_key=B1ng2I_r1DJShfXaN4UbGHR5dHYoJsTIqvtAy1yy&secret_key=BojxvK3hpQFf7ABpUI0LxVS-SGX6qP5iueJc4v27&bucket=afantasy",
-  "deletable": 1,
-  "debug_level": 1
-}
