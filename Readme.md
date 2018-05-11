@@ -6,5 +6,5 @@ Any questions or pull request are welcome.
 
 ### TODO
 
-- [x] tags 路由
-- [ ] TOC 支持
+- [ ] Support TOC
+- [ ] Write a better theme
