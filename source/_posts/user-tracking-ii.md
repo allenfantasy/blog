@@ -2,7 +2,7 @@ title: 网站统计那些事（二）：统计脚本实现（上）
 date: 2017-05-08 14:01
 tags:
 - JavaScript
-- user tracking
+- User Tracking
 ---
 
 网站统计系列的第二篇。一箩筐辣鸡代码和絮絮叨叨。

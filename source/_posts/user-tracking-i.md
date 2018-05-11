@@ -2,7 +2,7 @@ title: 网站统计那些事（一）：背景与基础概念
 date: 2017-05-08 14:00
 tags:
 - JavaScript
-- user tracking
+- User Tracking
 ---
 
 网站统计系列的第一篇。没有代码的湿货。

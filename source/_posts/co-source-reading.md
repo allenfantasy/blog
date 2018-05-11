@@ -1,4 +1,5 @@
 title: co 源码分析
+date: 2018-04-08
 tags:
 - JavaScript
 ---
@@ -29,9 +30,9 @@ co 具体做的事情：
 
 1. 接受一个 generator 作为输入，输出一个 Promise 对象
 2. 遍历整个 generator（即不断的调用 next）
-* 在遍历结束时（即 next 返回的对象 `done: false`）进行 resolve，resolve 所持有的值是最后一个 next 输出的 `value`
-* 在遍历过程中出现错误则 reject
-1. 仅支持 generator 函数中 yield 非空对象（不支持 primitive types 如 number, string 等），具体查看 co 文档中 [Yieldables](https://github.com/tj/co#yieldables) 部分
+  * 在遍历结束时（即 next 返回的对象 `done: false`）进行 resolve，resolve 所持有的值是最后一个 next 输出的 `value`
+  * 在遍历过程中出现错误则 reject
+3. 仅支持 generator 函数中 yield 非空对象（不支持 primitive types 如 number, string 等），具体查看 co 文档中 [Yieldables](https://github.com/tj/co#yieldables) 部分
 
 来看看核心代码（省去了一些无关的注释，实际核心代码只有几十行）：
 
@@ -216,7 +217,7 @@ co(function*() {
 
 执行这段代码可以观察到明显的内存泄漏的情况：
 
-```
+```bash
 { rss: 17420288, heapTotal: 9620736, heapUsed: 3590768 }
 { rss: 44822528, heapTotal: 49288192, heapUsed: 12972200 }
 { rss: 70955008, heapTotal: 58575616, heapUsed: 21688912 }
@@ -250,7 +251,7 @@ function next() {
 }
 ```
 
-```
+```bash
 { rss: 142749696, heapTotal: 128759296, heapUsed: 93098624 }
 { rss: 234614784, heapTotal: 218537728, heapUsed: 182771736 }
 { rss: 325664768, heapTotal: 308316160, heapUsed: 272393200 }
@@ -424,7 +425,7 @@ co(function*() {
 
 在 Node v8.5.0 环境下测试（执行时需要启用 gc 的选项：`node —expose-gc test.js`）结果如下：
 
-```
+```bash
 { rss: 22249472, heapTotal: 10485760, heapUsed: 4095864, external: 13316 }
 { rss: 28135424, heapTotal: 11010048, heapUsed: 4547568, external: 8224 }
 { rss: 28520448, heapTotal: 11010048, heapUsed: 4573504, external: 8224 }
@@ -471,7 +472,7 @@ function next() {
 
 其运行结果如下：
 
-```
+```bash
 { rss: 94011392, heapTotal: 79167488, heapUsed: 44926712, external: 8224 }
 { rss: 132673536, heapTotal: 119013376, heapUsed: 86040960, external: 8224 }
 { rss: 181956608, heapTotal: 164102144, heapUsed: 126798032, external: 8224 }
@@ -491,17 +492,16 @@ function next() {
 
 哼哧哼哧写完之后才发现，早有人很详细的研究了这个问题，惭愧哪……
 
-*   Maya 大神写的关于 Promise 链的详细研究（太长了，暂时看不动）：https://github.com/xieranmaya/blog/issues/5
-*   关于 Promise 内存泄漏的问题 by 腾讯 AlloyTeam http://www.alloyteam.com/2015/05/memory-leak-caused-by-promise/
+* Maya 大神写的关于 Promise 链的详细研究（太长了，暂时看不动）：https://github.com/xieranmaya/blog/issues/5
+* 关于 Promise 内存泄漏的问题 by 腾讯 AlloyTeam http://www.alloyteam.com/2015/05/memory-leak-caused-by-promise/
 
 ## Reference
 
-*   [tj/co, The ultimate generator based flow-control goodness for node.js](https://github.com/tj/co)
-*   [Aggressive Memory Leak, tj/co](https://github.com/tj/co/issues/180#issuecomment-68094905)
-*   [chain of never resolved promises create memory leaks, promises-aplus/promises-spec](https://github.com/promises-aplus/promises-spec/issues/179)
-*   [Which behavior is correct? ](https://github.com/promises-aplus/promises-spec/issues/183)
-*   [Promise A+](https://promisesaplus.com/)
-*   [Promise A+ 规范中文翻译](https://segmentfault.com/a/1190000002452115)
-*   [「翻译」Promises/A+ 规范](http://www.ituring.com.cn/article/66566)
-*   [Generator 函数的语法, ECMAScript6 入门 by 阮一峰](http://es6.ruanyifeng.com/#docs/generator)
-
+* [tj/co, The ultimate generator based flow-control goodness for node.js](https://github.com/tj/co)
+* [Aggressive Memory Leak, tj/co](https://github.com/tj/co/issues/180#issuecomment-68094905)
+* [chain of never resolved promises create memory leaks, promises-aplus/promises-spec](https://github.com/promises-aplus/promises-spec/issues/179)
+* [Which behavior is correct? ](https://github.com/promises-aplus/promises-spec/issues/183)
+* [Promise A+](https://promisesaplus.com/)
+* [Promise A+ 规范中文翻译](https://segmentfault.com/a/1190000002452115)
+* [「翻译」Promises/A+ 规范](http://www.ituring.com.cn/article/66566)
+* [Generator 函数的语法, ECMAScript6 入门 by 阮一峰](http://es6.ruanyifeng.com/#docs/generator)

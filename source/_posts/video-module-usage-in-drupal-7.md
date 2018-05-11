@@ -1,7 +1,9 @@
 title: "「译」- Drupal 7 中 Video 模块的使用"
+date: 2016/2/14 19:44:00
+updated: 2016/2/14 20:06:00
 tags:
-- drupal
-- translation
+- Drupal
+- Translation
 ---
 
 注1：本文翻译自 Drupal 官网中 Video 模块的文档，并做部分删改，仅供参考。

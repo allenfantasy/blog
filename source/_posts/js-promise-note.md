@@ -1,5 +1,6 @@
 title: JS Promise Note
-date: 2017-04-20 17:50:00
+date: 2017-04-20 17:50
+updated: 2018-05-09 00:37
 tags:
 - JavaScript
 ---

@@ -1,8 +1,9 @@
 title: Color, the known and unknown
+date: 2017-10-08 16:43
+updated: 2017-10-23 11:24
 
 tags:
-- FE
-- color
+- Color
 ---
 When studying the CSS framework [Bluma](bluma.io), I found that it use a very smart way to determine the text color based on the bg color, utiliizing the `color luminance` to decide to use black text or white text, which is interesting and I found some interesting facts to note it down.
 <!--more-->

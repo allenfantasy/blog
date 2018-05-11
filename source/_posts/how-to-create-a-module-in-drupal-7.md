@@ -1,8 +1,8 @@
 title: "[译] 如何在 Drupal 7 中构建模块"
 date: 2016-02-05
 tags:
-- drupal
-- translation
+- Drupal 
+- Translation
 ---
 
 注1：本文翻译自 Drupal 官方网站关于构建模块的[指南][guide]，结合实际操作有部分修改和简化。

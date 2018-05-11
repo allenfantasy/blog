@@ -1,4 +1,5 @@
 title: Hexo + Github Page 搭建博客
+date: 2015-06-05
 tags:
 ---
 

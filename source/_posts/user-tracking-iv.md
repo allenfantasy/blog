@@ -2,7 +2,7 @@ title: 网站统计那些事（四）：工程化，模块化与测试
 date: 2017-05-08 14:03
 tags:
 - JavaScript
-- user tracking
+- User Tracking
 ---
 
 网站统计系列的第四篇。没有代码。最后一篇了。

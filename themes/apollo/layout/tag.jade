@@ -1,0 +1,9 @@
+extends partial/layout
+
+block site_title
+  != `${page.tag} - ${config.title}`
+block container
+  include mixins/post
+  h1(style="text-align:center;font-style:italic;")
+    != page.tag
+  +posts()
