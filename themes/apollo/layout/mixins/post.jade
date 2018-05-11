@@ -1,7 +1,11 @@
 mixin postInfo(item)
     .post-meta
-        .post-time
+        span.post-time
             != full_date(item.date, 'll')
+        span.taglist
+            if item.tags
+                each tag in item.tags.data
+                    a.tag(href="/tags/#{tag.name}")= tag.name
 
 //- Index Page
 mixin posts()

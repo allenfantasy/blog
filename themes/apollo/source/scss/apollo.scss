@@ -44,3 +44,21 @@
     font-style: italic;
   }
 }
+
+.taglist {
+  margin-left: 8px;
+  .tag {
+    color: #42b983;
+    font-style: italic;
+    &:hover {
+      text-decoration: underline;
+    }
+    margin-right: 4px;
+    &:after {
+      content: ','
+    }
+    &:last-child:after {
+      display: none;
+    }
+  }
+}
