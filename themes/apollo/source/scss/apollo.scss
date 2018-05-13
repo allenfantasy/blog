@@ -10,18 +10,6 @@
 @import "_partial/copyright";
 
 //=== Overwrite ===//
-@media screen and (min-width: 1280px) {
-  body {
-    width: 960px;
-  }
-}
-.post-content {
-  font-size: 16px;
-  table {
-    font-size: 13px;
-  }
-}
-
 @mixin headerlink() {
   a:after {
     content: ' ';
@@ -37,6 +25,24 @@
   }
   &:hover a:after {
     opacity: 1;
+  }
+}
+
+@media screen and (min-width: 1280px) {
+  body {
+    width: 960px;
+  }
+}
+section.container {
+  position: relative;
+}
+.post-content {
+  font-size: 16px;
+  table {
+    font-size: 13px;
+  }
+  .highlight table {
+    font-size: 16px;
   }
 }
 
