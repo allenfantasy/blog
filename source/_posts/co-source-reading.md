@@ -488,14 +488,14 @@ function next() {
 
 看来，似乎目前 Node v8.5.0 版本内对 Promise 的实现仍然会存在这个问题。嗯，看来编码中要注意了……
 
-#### 更多研究
+### 更多研究
 
 哼哧哼哧写完之后才发现，早有人很详细的研究了这个问题，惭愧哪……
 
 * Maya 大神写的关于 Promise 链的详细研究（太长了，暂时看不动）：https://github.com/xieranmaya/blog/issues/5
 * 关于 Promise 内存泄漏的问题 by 腾讯 AlloyTeam http://www.alloyteam.com/2015/05/memory-leak-caused-by-promise/
 
-## Reference
+### Reference
 
 * [tj/co, The ultimate generator based flow-control goodness for node.js](https://github.com/tj/co)
 * [Aggressive Memory Leak, tj/co](https://github.com/tj/co/issues/180#issuecomment-68094905)
