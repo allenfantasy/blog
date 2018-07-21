@@ -193,7 +193,7 @@ X-Frame-Options: ALLOW-FROM https://example.com # 允许某个站点引用
 若用户修改的是 CSS 代码，页面不会发起类似上述的请求，而是通过 `window.postMessage` 的方式，同 `<iframe>` 元素进行跨域通信。以下是 Codepen 的实现代码：
 
 ```js
-var CSReload = {
+var CSSReload = {
     head: null,
     init: function() {
         this._storeHead(),
