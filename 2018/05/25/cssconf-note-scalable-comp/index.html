@@ -1,0 +1,61 @@
+<!DOCTYPE html><html lang="zh-cn"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title> CSSConf 笔记: Building Scalable Components · A Fantasy Ninja</title><meta name="description" content="CSSConf 笔记: Building Scalable Components - Allen"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="short icon" href="/favicon.png"><link rel="stylesheet" href="/css/apollo.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600" type="text/css"></head><body><header><a href="/" class="logo-link"><img src="/favicon.png"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="https://github.com/allenfantasy" target="_blank" class="nav-list-link">GITHUB</a></li></ul></header><section class="container"><div class="post"><article class="post-block"><h1 class="post-title">CSSConf 笔记: Building Scalable Components</h1><div class="post-meta"><span class="post-time">2018年5月25日</span><span class="taglist"><a href="/tags/CSS" class="tag">CSS</a></span></div><div class="post-content"><p>原分享地址： <a href="https://zellwk.github.io/scalable-components" target="_blank" rel="noopener">https://zellwk.github.io/scalable-components</a></p>
+<p>Zell 用他的博客作为例子解释了如何去构建可伸缩的（Scalable）的组件：在不同尺寸的页面中，一个组件应该有不同的展现形式（大小，内容，内部位置关系等）。</p>
+<p>Zell 提出了三个 Scaling 的概念：</p>
+<ol>
+<li>按比例的（Proportional Scaling）</li>
+<li>响应式的（Responsive Scaling）</li>
+<li>模块化的（Modular Scaling）</li>
+</ol>
+<h4 id="Proportional-Scaling"><a href="#Proportional-Scaling" class="headerlink" title="Proportional Scaling"></a>Proportional Scaling</h4><p>在按比例缩放中，组件应当根据以下两个对照值进行伸缩（scale）：</p>
+<ul>
+<li>font-size</li>
+<li>viewport</li>
+</ul>
+<p>其中我们要使用 <em>相对(字体大小)单位</em>，比如：</p>
+<ul>
+<li><code>em</code> 相对当前对象内文本的字体大小</li>
+<li><code>ch</code> 代表元素所用字体 font 中 “0” 这一字形的宽度（”0”, U+0030）<a href="https://developer.mozilla.org/zh-CN/docs/Web/CSS/length" target="_blank" rel="noopener">MDN</a></li>
+<li><code>%</code> 相对于父容器的 <em>同一属性</em> 的值的大小 <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/percentage" target="_blank" rel="noopener">MDN</a></li>
+</ul>
+<p>在编写同一个组件的不同大小尺寸时，可以将组件公共的 CSS 组织在一起，达到类似 bootstrap 一类框架的风格。也可以利用 Sass @mixin 可以实现更简练的风格：</p>
+<figure class="highlight scss"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">@<span class="keyword">mixin</span> button &#123;</div><div class="line">	<span class="attribute">display</span>: inline-block;</div><div class="line">  <span class="attribute">padding</span>: <span class="number">0.5em</span> <span class="number">0.75em</span>;</div><div class="line">  <span class="comment">/* Other common properties */</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="selector-class">.button-large</span> &#123;</div><div class="line">  @<span class="keyword">include</span> button;</div><div class="line">  <span class="attribute">font-size</span>: <span class="number">2em</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">button</span> <span class="attr">class</span>=<span class="string">"button-large"</span>&gt;</span>A large button<span class="tag">&lt;/<span class="name">button</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>另外一种控制相对大小的方法是使用相对于视口（viewport）比例的长度单位，如：</p>
+<ul>
+<li><code>vw</code></li>
+<li><code>vh</code></li>
+<li><code>vmin</code></li>
+<li><code>vmax</code></li>
+</ul>
+<p>结合 <code>calc</code> 函数，我们可以 <a href="https://zellwk.github.io/scalable-components/demo/rt.html" target="_blank" rel="noopener">实现响应式变动文字大小</a></p>
+<p>Mike Riethmuller 在 <a href="https://www.smashingmagazine.com/2016/05/fluid-typography/" target="_blank" rel="noopener">Responsive And Fluid Typography With vh and vw Units</a> 中详细地描述了更加具体的实践；有兴趣的同学可以看看这个 <a href="https://codepen.io/allenfantasy1018/pen/VxNJXw?editors=1100" target="_blank" rel="noopener">Demo</a> 和这个 <a href="https://www.sassmeister.com/gist/7f22e44ace49b5124eec" target="_blank" rel="noopener">Sass Snippet</a></p>
+<h4 id="Modular-Scaling"><a href="#Modular-Scaling" class="headerlink" title="Modular Scaling"></a>Modular Scaling</h4><p><em>TODO</em></p>
+<h4 id="Responsive-Scaling"><a href="#Responsive-Scaling" class="headerlink" title="Responsive Scaling"></a>Responsive Scaling</h4><p><em>TODO</em></p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a href="https://stackoverflow.com/questions/29511983/is-the-default-font-size-of-every-browser-16px-why" target="_blank" rel="noopener">Is the default font-size of every browser 16px? Why?</a></li>
+<li><a href="https://www.smashingmagazine.com/2014/07/breakpoints-and-the-future-websites/" target="_blank" rel="noopener">Breakpoints And The Future Of Websites</a></li>
+<li><a href="https://codepen.io/MadeByMike/pen/VvwqvW" target="_blank" rel="noopener">https://codepen.io/MadeByMike/pen/VvwqvW</a></li>
+<li><a href="http://alistapart.com/article/more-meaningful-typography" target="_blank" rel="noopener">http://alistapart.com/article/more-meaningful-typography</a></li>
+<li><a href="http://type-scale.com/" target="_blank" rel="noopener">Type Scale</a></li>
+<li><a href="http://www.modularscale.com/" target="_blank" rel="noopener">Modular Scale</a></li>
+</ul>
+<h2 id="TODO"><a href="#TODO" class="headerlink" title="TODO"></a>TODO</h2><ul>
+<li>读完 <a href="https://www.smashingmagazine.com/2016/05/fluid-typography/#maintaining-vertical-rhythm" target="_blank" rel="noopener">https://www.smashingmagazine.com/2016/05/fluid-typography/#maintaining-vertical-rhythm</a></li>
+</ul>
+</div></article></div></section><footer><div class="paginator"><a href="/2018/07/15/dive-into-iframe/" class="prev">上一篇</a><a href="/2018/05/13/lets-talk-observable-i/" class="next">下一篇</a></div><div id="disqus_thread"></div><script>/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+
+var disqus_config = function () {
+    this.page.url = 'http://afantasy.ninja/2018/05/25/cssconf-note-scalable-comp/';
+    // Replace PAGE_URL with your page's canonical URL variable
+    this.page.identifier = '2018/05/25/cssconf-note-scalable-comp/';
+    // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+(function() { // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    s.src = 'https://afantasy-ninja.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the<a href="https://disqus.com/?ref_noscript">comments powered by Disqus</a></noscript><script id="dsq-count-scr" src="//afantasy-ninja.disqus.com/count.js" async></script><div class="copyright"><p>© 2015 - 2018 <a href="http://afantasy.ninja">Allen</a>, unless otherwise noted.</p></div></footer><script src="https://cdn.bootcss.com/mathjax/2.5.3/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script src="https://s22.cnzz.com/z_stat.php?id=1261988857&amp;web_id=1261988857"></script><script>document.querySelector('[title="站长统计"]').style.display = 'none'</script></body></html>

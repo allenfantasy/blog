@@ -1,0 +1,89 @@
+<!DOCTYPE html><html lang="zh-cn"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title> 当提技术问题前我在想什么 · A Fantasy Ninja</title><meta name="description" content="当提技术问题前我在想什么 - Allen"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="short icon" href="/favicon.png"><link rel="stylesheet" href="/css/apollo.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600" type="text/css"></head><body><header><a href="/" class="logo-link"><img src="/favicon.png"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="https://github.com/allenfantasy" target="_blank" class="nav-list-link">GITHUB</a></li></ul></header><section class="container"><div class="post"><article class="post-block"><h1 class="post-title">当提技术问题前我在想什么</h1><div class="post-meta"><span class="post-time">2018年7月21日</span><span class="taglist"><a href="/tags/LifeHack" class="tag">LifeHack</a></span></div><div class="post-content"><p>有时候提一个问题的姿势，比提什么问题更加重要。<br><a id="more"></a><br>注: 本文最早是发在一个学习论坛上的 <a href="http://bbs.sike.io/t/topic/1385" target="_blank" rel="noopener">帖子</a>。后有所删改。</p>
+<h1 id="tl-dr"><a href="#tl-dr" class="headerlink" title="tl;dr"></a>tl;dr</h1><p>本文的论点1：在你用尽浑身解数之前，请不要轻易发问题。<br>本文的论点2：请用心问一个问题。</p>
+<p>如果对其中的论点有异议的，欢迎留言反驳。也欢迎点击左（Win用户右）上角的叉叉。</p>
+<h1 id="在我遇到一个坑时"><a href="#在我遇到一个坑时" class="headerlink" title="在我遇到一个坑时"></a>在我遇到一个坑时</h1><p>其实我经常遇到坑，而且经常自己坑自己。<del>之所以没有让其他人耻笑的原因只是我没有告诉别人（逃</del></p>
+<p>自己给自己挖坑的情况包括但不限于：</p>
+<ol>
+<li>Typo</li>
+<li>没保存</li>
+<li>没刷新</li>
+<li>没重启</li>
+<li>没脑子（对的，搞了半天，想错了</li>
+</ol>
+<p>其实我觉得前4点已经占了 95% 以上的情况。可能我不是一个老司机，所以智商比较捉急（逃</p>
+<p>因为跳了太多（自己的）坑，所以当我遇到一个”坑”时，我的反应是（按先后顺序排列）:</p>
+<ol>
+<li>这是我自己挖的么？</li>
+<li>我有没有重启/刷新/保存？</li>
+<li>Debug</li>
+</ol>
+<p>下文将讨论解决问题的流程。</p>
+<h1 id="1-Debug"><a href="#1-Debug" class="headerlink" title="1. Debug"></a>1. Debug</h1><p>这个问题太大，随便选门语言框架的 debug 话题就可以扯很久。我对 debug 的理解是：</p>
+<ol>
+<li>搜集并分析 log</li>
+<li>工具</li>
+<li>其他方法</li>
+</ol>
+<p>前两点我相信大家会懂。如果不懂的话可以看下一章（嗯，其实下一章没有提工具，哈哈哈哈哈）。其他方法包括但不限于：</p>
+<ul>
+<li>二分排除法</li>
+<li>断点</li>
+<li>Print</li>
+</ul>
+<h1 id="2-搜索"><a href="#2-搜索" class="headerlink" title="2. 搜索"></a>2. 搜索</h1><blockquote>
+<p>xxx 是什么? </p>
+</blockquote>
+<p>这是我在论坛/群组里见过的最多的问题。康忙，现在是一个互联网时代。</p>
+<p>你不需要别人告诉你这是什么，网络上你能找到关于一个名词的一切。</p>
+<p>但是这里会有三个问题：搜索渠道、搜索内容和搜索技巧。</p>
+<h2 id="搜索渠道"><a href="#搜索渠道" class="headerlink" title="搜索渠道"></a>搜索渠道</h2><p>首先，请谷歌。（抛开某度难看的吃相，在百度上搜技术问题简直就是慢性自杀<br>如果无法谷歌，请尽最大努力来进行翻墙。<br>如果连翻墙都没有办法（比如，你家的运营商是个渣渣），那用 <a href="http://cn.bing.com/" target="_blank" rel="noopener">必应</a> 也还行。</p>
+<h2 id="搜索内容"><a href="#搜索内容" class="headerlink" title="搜索内容"></a>搜索内容</h2><ol>
+<li>报错日志的关键字，越具体越精确越好。举例：<code>error</code> 是一个很泛的词，而 <code>unexpected token &lt;</code> 或者 <code>permission denied</code> 是一个比较精确的描述。</li>
+<li>加上你使用的语言/框架/库 作为限定范围，别找 JavaScript 的错误跑 Java 去了。</li>
+</ol>
+<h2 id="搜索技巧"><a href="#搜索技巧" class="headerlink" title="搜索技巧"></a>搜索技巧</h2><ol>
+<li>请用英语搜索（尝试用一切方法用英语描述你的问题）。我并没有崇洋媚外的意思，但是我个人认为，在目前比较流行的技术（比如，React）上，国外的速度还是要比国内快一点点的。国内的大牛作品，也多少建立在阅读（或翻译）国外博客/代码等等之上的。况且我们还有大 Stackoverflow。</li>
+<li>如果遵循了第一点，你会摸索到很多第2方法，比如直接上 Stackoverflow, 直接上 Github，直接查源码，直接订阅博客, etc.</li>
+</ol>
+<p>这方面其实我也不是很出色（可能是因为我的问题用关键字就已经能查到了），所以推荐 @cee 同学的 <a href="http://blog.cee.moe/secrets-that-a-programmer-should-know.html" target="_blank" rel="noopener">一篇文章</a>，里面有详细的描述。</p>
+<p>Have fun searching!</p>
+<h1 id="3-如果还没有搞定（如果你看到这里）"><a href="#3-如果还没有搞定（如果你看到这里）" class="headerlink" title="3. 如果还没有搞定（如果你看到这里）"></a>3. 如果还没有搞定（如果你看到这里）</h1><p>请再次检查这是不是自己挖的坑。<br>或者把椅子拉后一点，喝口水，认真检查一次报错日志，理一理思路。<br>尝试一下用 <a href="https://zh.wikipedia.org/zh/%E5%B0%8F%E9%BB%84%E9%B8%AD%E8%B0%83%E8%AF%95%E6%B3%95" target="_blank" rel="noopener">小黄鸭调试法</a>。<br>准备问问题。</p>
+<h1 id="4-问一个高质量的问题。"><a href="#4-问一个高质量的问题。" class="headerlink" title="4. 问一个高质量的问题。"></a>4. 问一个高质量的问题。</h1><p>在说这个之前，我要搬出伟大的 Eric Raymond 的 <a href="http://doc.zengrong.net/smart-questions/cn.html" target="_blank" rel="noopener">「提问的智慧」</a></p>
+<p>如果你看完了，你就会说：早知道我就直接看这个了，还要听你胡扯！（如果你没看完，可以看完再回来说这句话）</p>
+<p>但是我还是想说下我的看法。这是我对自己提的问题的要求：</p>
+<ol>
+<li>要有一个详细的，具体的标题。一目了然，方便导航，方便搜索，方便老司机带你飞；</li>
+<li>记录你在问之前做过的 debug，排除杂音；</li>
+<li>在解决之后修改题目，标记为【已解决】，再补一个解决方案；</li>
+<li>要懂得 say thankyou</li>
+</ol>
+<p>而一个好的提问究竟是怎样的呢? 我找到了一个挺不错的 <a href="https://ruby-china.org/topics/27890" target="_blank" rel="noopener">栗子</a>。</p>
+<p>有一个童鞋提出，问问题只是“顺便问”，这样能省下自己的时间。我想让大家一起思考的问题是：假如你是一个老司机，很会指路，如果让你重复的指很多次一样的道，话过三巡也会腻烦的吧？</p>
+<h1 id="Why-the-fuck"><a href="#Why-the-fuck" class="headerlink" title="Why the fuck"></a>Why the fuck</h1><p>我觉得还是会有童鞋说：“我很急，我需要一个快速的答案！” 我的理解是：</p>
+<ol>
+<li><p>你没有安排好你的时间。非要到死线前才来要求生产力，是一种上了茅坑不冲屎，再上同样的茅坑屎还在的行为。</p>
+<blockquote>
+<p>Since you didn’t debug by yourself, you never know what the hell is behind the scene.</p>
+</blockquote>
+</li>
+<li><p>你很懒，懒到让别人帮你买单。</p>
+</li>
+</ol>
+<p>Q.E.D</p>
+</div></article></div></section><footer><div class="paginator"><a href="/2018/07/15/dive-into-iframe/" class="next">下一篇</a></div><div id="disqus_thread"></div><script>/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+
+var disqus_config = function () {
+    this.page.url = 'http://afantasy.ninja/2018/07/21/what-i-am-thinking-before-asking-questions/';
+    // Replace PAGE_URL with your page's canonical URL variable
+    this.page.identifier = '2018/07/21/what-i-am-thinking-before-asking-questions/';
+    // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+(function() { // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    s.src = 'https://afantasy-ninja.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the<a href="https://disqus.com/?ref_noscript">comments powered by Disqus</a></noscript><script id="dsq-count-scr" src="//afantasy-ninja.disqus.com/count.js" async></script><div class="copyright"><p>© 2015 - 2018 <a href="http://afantasy.ninja">Allen</a>, unless otherwise noted.</p></div></footer><script src="https://cdn.bootcss.com/mathjax/2.5.3/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script src="https://s22.cnzz.com/z_stat.php?id=1261988857&amp;web_id=1261988857"></script><script>document.querySelector('[title="站长统计"]').style.display = 'none'</script></body></html>

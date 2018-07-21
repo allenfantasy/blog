@@ -1,0 +1,154 @@
+<!DOCTYPE html><html lang="zh-cn"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title> 科学上网之快速过关 · A Fantasy Ninja</title><meta name="description" content="科学上网之快速过关 - Allen"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="short icon" href="/favicon.png"><link rel="stylesheet" href="/css/apollo.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600" type="text/css"></head><body><header><a href="/" class="logo-link"><img src="/favicon.png"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="https://github.com/allenfantasy" target="_blank" class="nav-list-link">GITHUB</a></li></ul></header><section class="container"><div class="post"><article class="post-block"><h1 class="post-title">科学上网之快速过关</h1><div class="post-meta"><span class="post-time">2016年2月9日</span><span class="taglist"><a href="/tags/LifeHack" class="tag">LifeHack</a></span></div><div class="post-content"><p>本文旨在提供快速科学上网的通关方法。<br>废话少说，立刻开始。<br><a id="more"></a></p>
+<h1 id="综述"><a href="#综述" class="headerlink" title="综述"></a>综述</h1><p>科学上网的方式有若干种：</p>
+<ul>
+<li>VPN</li>
+<li>Shadowsocks（又称 ss 或影梭）</li>
+<li>Lantern（蓝灯）</li>
+<li>GoAgent</li>
+<li>改 hosts</li>
+</ul>
+<p>我自己比较喜欢用前两个方法。Lantern 我没有用过，GoAgent 不稳定而且局限程度比较大。</p>
+<p>稍微做一个简单的比较表格吧</p>
+<table>
+<thead>
+<tr>
+<th>方式</th>
+<th>平台</th>
+<th>费用</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>VPN</td>
+<td>全平台</td>
+<td>一百多到几百不等</td>
+<td>不易被封杀</td>
+</tr>
+<tr>
+<td>Shadowsocks</td>
+<td>全平台</td>
+<td>每月10-20美元(自建)/80-100元(付费服务)</td>
+<td>iOS 待研究;也不易被封杀</td>
+</tr>
+<tr>
+<td>Lantern</td>
+<td>全平台</td>
+<td><strong>据说免费</strong></td>
+<td>不要相信我那个“据说”</td>
+</tr>
+<tr>
+<td>GoAgent</td>
+<td>PC</td>
+<td>这个是真免费</td>
+<td>移动端存疑;只能用在浏览器上</td>
+</tr>
+<tr>
+<td>改 hosts</td>
+<td>PC</td>
+<td>这个也免费</td>
+<td>移动端我没试过;猫捉老鼠</td>
+</tr>
+</tbody>
+</table>
+<p>关于各种方法的具体优劣，Annie Wu 写了一篇很不错的 <a href="https://mp.weixin.qq.com/s?__biz=MzAwOTU3MDMwNg==&amp;mid=402146885&amp;idx=1&amp;sn=b8b69ca32f4b49fbe42f1effa39e095d&amp;scene=1&amp;srcid=01130kK0bCb7pKtQwV2Vfpq8&amp;key=710a5d99946419d9a313aac034600058a65e11dd5741d34c5ac15fc11b7ed24df3e5a616096eaaff56b058df8903ca4b&amp;ascene=0&amp;uin=MjYyODA0MjQ4Mw%3D%3D&amp;devicetype=iMac+MacBookPro11%2C2+OSX+OSX+10.11.3+build(15D21)&amp;version=11020201&amp;pass_ticket=px%2FKbwHJYExj3Fb52LK%2FlNK4T1Q7IOubUmdFgDsYhcXx9BtQCsMI3oIxktwDz3MB" target="_blank" rel="noopener">比较文章</a>，这里我只对比较熟悉的 VPN 和 Shadowsocks 进行详述。</p>
+<h1 id="VPN"><a href="#VPN" class="headerlink" title="VPN"></a>VPN</h1><p><a href="https://zh.wikipedia.org/zh/%E8%99%9B%E6%93%AC%E7%A7%81%E4%BA%BA%E7%B6%B2%E8%B7%AF" target="_blank" rel="noopener">VPN</a> 是一种简单的全局翻墙方式。特殊的国情造就了大量的 VPN 服务。</p>
+<p>需要注意的是，VPN 是一种全局的翻墙方式，所以如果你希望同时访问国内外两边的网站（比如，看 youtube 同时看 youku），那你需要留意 VPN 厂商是否提供了智能分流的方式。否则要频繁切换也是很烦躁的。</p>
+<p>电脑和移动端操作系统都预装了 VPN 客户端，相比别的翻墙操作更简单，适合不折腾人士。</p>
+<p>以下列举我了解的 VPN 服务：</p>
+<ul>
+<li><a href="https://www.ytpub.com/" target="_blank" rel="noopener">云梯</a> - 这个是去年我在用的方式，不过半年前我换成了 Shadowsocks 了。需要注意的是云梯有很多假冒者，请小心分辨<ul>
+<li>优点：国内可以访问，有完善的各平台教程，有智能分流，客服不错（提交工单就会回复），价格还算亲民<del>（真不是打广告）</del></li>
+<li>缺点：部分地区网络无法访问（其实这个是所有 VPN 都可能有的问题）</li>
+</ul>
+</li>
+<li><a href="https://www.astrill.com/" target="_blank" rel="noopener">Astrill</a> - 这个是很多老外喜欢用的 VPN<ul>
+<li>优点：据老外和 Annie 说好，比较稳。支付方式多。</li>
+<li>缺点：贵。而且好像网站本身也要翻墙上，有点鸡生蛋蛋生鸡的感觉。</li>
+</ul>
+</li>
+<li>红杏<ul>
+<li>据 Annie 说是死了。Sad story.</li>
+<li>刚搜索了一下，现在也有叫「红杏」的服务（不全是 VPN），但真假莫辩：<ul>
+<li><a href="http://www.yizhihongxing.com/" target="_blank" rel="noopener">一枝红杏</a></li>
+<li><a href="http://www.hongxingchajian.com/" target="_blank" rel="noopener">红杏</a></li>
+</ul>
+</li>
+<li>然后我又搜索了一下，发现官方有 <a href="http://help.honx.in/hc/kb/article/49540/" target="_blank" rel="noopener">解释这个问题</a>，敬请大家不要上当。</li>
+</ul>
+</li>
+</ul>
+<p>其他没用过的我就不提了。或者大家如果有找到好的也可以用。</p>
+<h1 id="Shadowsocks"><a href="#Shadowsocks" class="headerlink" title="Shadowsocks"></a>Shadowsocks</h1><p>江湖人称 ss 或影梭。也是一种可全局翻墙的方式（原理与 VPN 不同，使用 Socks 协议）</p>
+<p>Shadowsocks 分两个部分：Server &amp; Client</p>
+<p>Server 指服务器端，Client 指客户端（你的设备），两端通过 Socks 协议沟通，由于协议本身并不是普通的 HTTP 协议，所以更难被墙。</p>
+<p>在服务器端有两种方式可以实现：自建（用 VPS）</p>
+<h2 id="自建"><a href="#自建" class="headerlink" title="自建"></a>自建</h2><p>推荐阅读 Shadowsocks 的 <strong><a href="https://github.com/shadowsocks/shadowsocks/wiki/Shadowsocks-%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E" target="_blank" rel="noopener">官方文档</a></strong></p>
+<p>当然也可以参考这些教程：</p>
+<ul>
+<li>For linux: <a href="https://xiaoxiao.im/2014/06/02/shadowsocks.html" target="_blank" rel="noopener">安装配置 Shadowsocks</a></li>
+<li><a href="http://jerryzou.com/posts/shadowsocks-with-digitalocean/" target="_blank" rel="noopener">使用 Digital Ocean 和 Shadowsocks 来科学上网</a></li>
+</ul>
+<p>至于 VPS 的选择方面，有几个选项：</p>
+<ul>
+<li>Vultr - 这个有很多朋友推荐，目前在用这个</li>
+<li><a href="https://www.conoha.jp/zh" target="_blank" rel="noopener">Conoha</a> - 据说国内速度很不错哦（但是我没用过。特别鸣谢某18岁骚年的推荐。</li>
+<li>Linode</li>
+<li>Digital Ocean</li>
+</ul>
+<p>当然你也可以用你喜欢的 VPS 架设。</p>
+<h2 id="使用服务"><a href="#使用服务" class="headerlink" title="使用服务"></a>使用服务</h2><p>作为程序员我是自己搭建的，所以没买过这种服务。</p>
+<p>Annie 推荐的是 <a href="https://shadowsocks.com/" target="_blank" rel="noopener">这个</a>，有兴趣的同学可以试试。（不行不要打我）</p>
+<h2 id="客户端的问题"><a href="#客户端的问题" class="headerlink" title="客户端的问题"></a>客户端的问题</h2><p>这里有一个比较完整的 <a href="https://shadowsocks.com/client.html" target="_blank" rel="noopener">列表</a></p>
+<h3 id="Mac-下的使用"><a href="#Mac-下的使用" class="headerlink" title="Mac 下的使用"></a>Mac 下的使用</h3><p>由于我自己用的是 Mac，所以只能整理出 Mac 下的教程了。<br>Windows 和 Linux 的用户实在抱歉。</p>
+<ul>
+<li><a href="https://github.com/shadowsocks/shadowsocks-windows/wiki/Shadowsocks-Windows-%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E" target="_blank" rel="noopener">Windows 教程</a></li>
+<li><a href="http://jerryzou.com/posts/shadowsocks-with-digitalocean/" target="_blank" rel="noopener">Linux 教程</a></li>
+</ul>
+<p>具体步骤：</p>
+<ol>
+<li>购买或在服务器上自建好 Shadowsocks 服务。</li>
+<li><p><a href="https://github.com/shadowsocks/shadowsocks-iOS/wiki/Shadowsocks-for-OSX-%E5%B8%AE%E5%8A%A9" target="_blank" rel="noopener">下载安装 Shadowsocks OS X</a></p>
+<p>貌似 Shadowsocks OS X 的那个下载链接…是被墙的嗯。<a href="http://pan.baidu.com/s/1skb1yQp" target="_blank" rel="noopener">百度盘链接</a></p>
+</li>
+<li><p>配置：打开 Shadowsocks OS X，这时屏幕顶部任务栏会有一个纸飞机的图案。点击之后选择「服务器」-「服务器设定」，然后会出现以下窗口：</p>
+<p><img src="http://7xjvtw.com1.z0.glb.clouddn.com/ss-mac-os-x.png" alt=""></p>
+<p>地址栏填服务商提供的（或者自建的）IP 和端口；填写密码和备注。</p>
+</li>
+<li><p>配置好后点击纸飞机：「打开 Shadowsocks」，并切换到自动代理模式；</p>
+</li>
+<li>用 Chrome 浏览器，并在浏览器上安装 SwitchyOmega 插件，并把插件调整为 <code>auto switch</code> 模式</li>
+<li>尽情的上网吧。</li>
+</ol>
+<h1 id="iOS"><a href="#iOS" class="headerlink" title="iOS"></a>iOS</h1><p>之前我错过了<del>大名鼎鼎</del>死贵死贵的 Surge, 有点遗憾。今天在群里看到有童鞋推荐 Shadowrocket，亲测非常方便好用，在这里补充一下：</p>
+<ol>
+<li>在 AppStore 搜索 <code>Shadowrocket</code> 并下载（6RMB，相比 68 的 Surge 算是很良心的价格了）</li>
+<li>跟着 <a href="https://ii-i.org/archives/859" target="_blank" rel="noopener">这篇教程</a> 往下做，最方便的方法就是在电脑端（如果你在电脑上已经配置了 shadowsocks 的话）生成二维码，然后直接扫描一下就可以了。</li>
+<li>（选做）配置自动模式（On Demand）点击 Settings - On Demand，将 <code>On Demand</code> 的选项卡打开即可。</li>
+</ol>
+<h1 id="那你在用什么"><a href="#那你在用什么" class="headerlink" title="那你在用什么?"></a>那你在用什么?</h1><ul>
+<li>Mac 上用 ShadowsocksX （非常完美）</li>
+<li><del>iOS 上用云梯 VPN。我用的是移动 4G，只能说时灵时不灵吧。</del> iOS: long live Shadowrocket!!!</li>
+</ul>
+<h1 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h1><ul>
+<li><a href="http://www.jianshu.com/collection/b6b16295fc83" target="_blank" rel="noopener">科学上网专题 - 简书</a> - <del>话说简书这么干，我告诉你，吃枣药丸啊</del></li>
+<li><a href="https://mp.weixin.qq.com/s?__biz=MzAwOTU3MDMwNg==&amp;mid=402146885&amp;idx=1&amp;sn=b8b69ca32f4b49fbe42f1effa39e095d&amp;scene=1&amp;srcid=01130kK0bCb7pKtQwV2Vfpq8&amp;key=710a5d99946419d9a313aac034600058a65e11dd5741d34c5ac15fc11b7ed24df3e5a616096eaaff56b058df8903ca4b&amp;ascene=0&amp;uin=MjYyODA0MjQ4Mw%3D%3D&amp;devicetype=iMac+MacBookPro11%2C2+OSX+OSX+10.11.3+build(15D21)&amp;version=11020201&amp;pass_ticket=px%2FKbwHJYExj3Fb52LK%2FlNK4T1Q7IOubUmdFgDsYhcXx9BtQCsMI3oIxktwDz3MB" target="_blank" rel="noopener">V＊P＊N使用大全丨当我想看看世界的时候，我要做些什么。</a> - Annie 的呕心沥血之作</li>
+<li><a href="http://jerryzou.com/posts/shadowsocks-with-digitalocean/" target="_blank" rel="noopener">使用 Digital Ocean 和 Shadowsocks 来科学上网</a> - 很全面的翻墙教程</li>
+</ul>
+</div></article></div></section><footer><div class="paginator"><a href="/2016/02/14/video-module-usage-in-drupal-7/" class="prev">上一篇</a><a href="/2016/02/09/fuckgfw/" class="next">下一篇</a></div><div id="disqus_thread"></div><script>/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+
+var disqus_config = function () {
+    this.page.url = 'http://afantasy.ninja/2016/02/09/break-gfw-fastforward/';
+    // Replace PAGE_URL with your page's canonical URL variable
+    this.page.identifier = '2016/02/09/break-gfw-fastforward/';
+    // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+(function() { // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    s.src = 'https://afantasy-ninja.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the<a href="https://disqus.com/?ref_noscript">comments powered by Disqus</a></noscript><script id="dsq-count-scr" src="//afantasy-ninja.disqus.com/count.js" async></script><div class="copyright"><p>© 2015 - 2018 <a href="http://afantasy.ninja">Allen</a>, unless otherwise noted.</p></div></footer><script src="https://cdn.bootcss.com/mathjax/2.5.3/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script src="https://s22.cnzz.com/z_stat.php?id=1261988857&amp;web_id=1261988857"></script><script>document.querySelector('[title="站长统计"]').style.display = 'none'</script></body></html>

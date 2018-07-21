@@ -1,0 +1,92 @@
+<!DOCTYPE html><html lang="zh-cn"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title> 「译」- Drupal 7 中 Video 模块的使用 · A Fantasy Ninja</title><meta name="description" content="「译」- Drupal 7 中 Video 模块的使用 - Allen"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="short icon" href="/favicon.png"><link rel="stylesheet" href="/css/apollo.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600" type="text/css"></head><body><header><a href="/" class="logo-link"><img src="/favicon.png"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="https://github.com/allenfantasy" target="_blank" class="nav-list-link">GITHUB</a></li></ul></header><section class="container"><div class="post"><article class="post-block"><h1 class="post-title">「译」- Drupal 7 中 Video 模块的使用</h1><div class="post-meta"><span class="post-time">2016年2月14日</span><span class="taglist"><a href="/tags/Drupal" class="tag">Drupal</a><a href="/tags/Translation" class="tag">Translation</a></span></div><div class="post-content"><p>注1：本文翻译自 Drupal 官网中 Video 模块的文档，并做部分删改，仅供参考。</p>
+<p>注2：本文要求读者具备基本的 Drupal 7 知识，如基本架构，模块使用等。</p>
+<p>原文:</p>
+<ul>
+<li><a href="https://www.drupal.org/node/2281571" target="_blank" rel="noopener">Installing and Configuring the Video Module - Drupal 7</a></li>
+<li><a href="https://www.drupal.org/documentation/modules/video" target="_blank" rel="noopener">Video: transcoding and playback</a></li>
+</ul>
+<h3 id="关于-Video-模块"><a href="#关于-Video-模块" class="headerlink" title="关于 Video 模块"></a>关于 Video 模块</h3><p>Video 模块可以将几乎任何视频格式文件 “转码” 为 H.246, Theora, VP8（以及其他众多格式）。它使用 <a href="https://zencoder.com/" target="_blank" rel="noopener">Zencoder</a> 转码云服务或者 <a href="http://ffmpeg.org/" target="_blank" rel="noopener">FFMPEG</a> 这个开源项目（需要运行在你的服务器上）。网站建设者可以通过一个 video 字段将视频上传到节点（nodes）中（video 字段是 Video 模块中自带的），就和文件字段一样。当视频完成转码后，Video 模块将自动为视频创建缩略图，并且将一个视频播放器嵌入到视图层中。Video 模块是高度可配置的，还可以集成到 AWS S3 云存储服务中。</p>
+<h3 id="安装及配置"><a href="#安装及配置" class="headerlink" title="安装及配置"></a>安装及配置</h3><h4 id="系统要求"><a href="#系统要求" class="headerlink" title="系统要求"></a>系统要求</h4><ul>
+<li><p>系统中必须要安装 <strong>Curl</strong>，并且可以通过 PHP 调用。在 phpinfo() 中查看 Curl 的选项，或者在 linux 命令行下执行：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ php -i | grep <span class="string">"curl"</span></div></pre></td></tr></table></figure>
+<p>如果你看到有输出信息，那么说明配置好了。</p>
+</li>
+<li>FFMPEG 在 Windows 下只支持有限的 codec，需要做额外的安装配置。</li>
+</ul>
+<h4 id="依赖的模块"><a href="#依赖的模块" class="headerlink" title="依赖的模块"></a>依赖的模块</h4><ul>
+<li><a href="https://drupal.org/project/libraries" target="_blank" rel="noopener">Libraries</a></li>
+</ul>
+<h4 id="转码器（transcoder）"><a href="#转码器（transcoder）" class="headerlink" title="转码器（transcoder）"></a>转码器（transcoder）</h4><p>Video 模块兼容 FFMPEG 和 Zencoder。根据你选择的转码器你需要做以下配置（必须选择其中一个）：</p>
+<ul>
+<li><strong>Zencoder</strong><ol>
+<li>从 Github 中下载 <a href="https://github.com/zencoder/zencoder-php" target="_blank" rel="noopener">zencoder-php 库</a></li>
+<li>将这个库放置到 <em>sites/all/libaries</em> 中</li>
+</ol>
+</li>
+<li><strong>FFMPEG</strong> - 根据你使用的平台下载并安装 FFMPEG（根据平台的不同，下载 FFMPEG 的方式也不同）。<strong>请自行搜索在不同平台下安装的方法。</strong></li>
+</ul>
+<p>FFMPEG 和 Zencoder 有什么区别么?</p>
+<p><strong>FFMPEG</strong> 必须安装在你的服务器上，它的安装会有些复杂。但一旦安装配置好后，FFMPEG 不需要任何额外的花销。但是，视频转码是一个 CPU 密集的操作，所以 FFMPEG 在高流量的单点服务器上，可能不是一个很好的解决方案。同时，在上传的视频文件体积较大或者网站接受大量视频文件时，也不大适合使用 FFMPEG。在以下情况下使用 FFMPEG 比较合适：</p>
+<ol>
+<li>网站上传视频的频率不高，且视频比较短；</li>
+<li>你（开发人员）有时间来研究如何安装编译配置 FFMPEG，但没有钱（购买服务）；</li>
+<li>你的服务器能够承载大量的 CPU 计算；</li>
+<li>网站的流量不高。</li>
+</ol>
+<p><strong>Zencoder</strong> 是一个速度快的云转码服务。它可以接受高流量的大视频文件上传且不会让你的服务器变慢。尽管 Zencoder 是一个商业服务（收费），它提供免费的试用账号，该账号由 Video 模块为你轻松建立。使用 Zencoder 的两个不足是你需要为使用服务来付费，同时目前在没有 IP 地址的情况下难以测试 Zencoder。例如，在本地开发时很难测试 Zencoder。在以下情形下你可以考虑使用 Zencoder：</p>
+<ol>
+<li>你的资金能够负担视频服务的费用，但（开发人员）没有时间来研究 FFMPEG；</li>
+<li>你的服务器（网站）需要承受高流量；</li>
+<li>你允许网站访问者自由地上传视频到你的网站中；</li>
+<li>你希望网站接受大视频上传；</li>
+<li>你希望在某一天能在云上存储不限量的视频。</li>
+</ol>
+<h4 id="配置-Video-模块"><a href="#配置-Video-模块" class="headerlink" title="配置 Video 模块"></a>配置 Video 模块</h4><p>Video 模块包含3个单独的子模块：Video, Video UI 和 Zencoder</p>
+<p>配置方法如下：</p>
+<ol>
+<li>在 <em>admin/modules</em> 中启用 Video 和 Video UI 两个模块</li>
+<li>如果使用 Zencoder:<ol>
+<li>启用 Zencoder 模块</li>
+<li>进入 <em>admin/config/media/video/transcoders</em> 页面</li>
+<li>在 Video transcoder 的选项中，选择 Zencoder</li>
+<li>输入你的邮箱账号，以获得一个 Zencoder 的试用账号（trial）</li>
+<li>保存配置</li>
+<li>稍等一会儿，你的账号将被建立，并自动保存到你的 Video 模块信息中。</li>
+</ol>
+</li>
+<li>如果使用 FFMPEG<ol>
+<li>在服务器上安装 FFMPEG。具体操作详见 FFMPEG 的 <a href="https://www.ffmpeg.org/download.html" target="_blank" rel="noopener">官网</a></li>
+<li>进入 <em>admin/config/media/video/transcoders</em> 页面</li>
+<li>在 Video transcoder 的选项中，选择 FFmpeg/avconv</li>
+<li>在 <em>Path to FFmpeg or avconv executable</em> 中填入服务器中 FFMPEG 的可执行文件地址（可以用 <code>which ffmpeg</code> 查看）</li>
+<li>保存配置</li>
+</ol>
+</li>
+<li>在 <em>admin/config/media/video/presets/add</em> 页面中，添加一个 preset（至少需要一个），并且至少配置以下选项：<ul>
+<li>Preset name</li>
+<li>Video output extension - 输出格式</li>
+<li>Video codec - 视频编码</li>
+<li>Audio codec - 音频编码</li>
+</ul>
+</li>
+<li>在 <em>admin/structure/types</em> 中，编辑或添加一个 <em>content type</em></li>
+<li>添加一个 video 字段，并选择你之前设定好的 preset</li>
+</ol>
+<h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><p>现在你可以通过新建一个该 content type 下的 node 来上传视频了。注意，如果你使用的是 Zencoder，请确保你有一个公共的 IP 地址（而不是 localhost）</p>
+</div></article></div></section><footer><div class="paginator"><a href="/2017/04/20/js-promise-note/" class="prev">上一篇</a><a href="/2016/02/09/break-gfw-fastforward/" class="next">下一篇</a></div><div id="disqus_thread"></div><script>/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+
+var disqus_config = function () {
+    this.page.url = 'http://afantasy.ninja/2016/02/14/video-module-usage-in-drupal-7/';
+    // Replace PAGE_URL with your page's canonical URL variable
+    this.page.identifier = '2016/02/14/video-module-usage-in-drupal-7/';
+    // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+(function() { // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    s.src = 'https://afantasy-ninja.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the<a href="https://disqus.com/?ref_noscript">comments powered by Disqus</a></noscript><script id="dsq-count-scr" src="//afantasy-ninja.disqus.com/count.js" async></script><div class="copyright"><p>© 2015 - 2018 <a href="http://afantasy.ninja">Allen</a>, unless otherwise noted.</p></div></footer><script src="https://cdn.bootcss.com/mathjax/2.5.3/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script src="https://s22.cnzz.com/z_stat.php?id=1261988857&amp;web_id=1261988857"></script><script>document.querySelector('[title="站长统计"]').style.display = 'none'</script></body></html>

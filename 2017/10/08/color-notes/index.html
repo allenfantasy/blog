@@ -1,0 +1,160 @@
+<!DOCTYPE html><html lang="zh-cn"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title> Color, the known and unknown · A Fantasy Ninja</title><meta name="description" content="Color, the known and unknown - Allen"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="short icon" href="/favicon.png"><link rel="stylesheet" href="/css/apollo.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600" type="text/css"></head><body><header><a href="/" class="logo-link"><img src="/favicon.png"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="https://github.com/allenfantasy" target="_blank" class="nav-list-link">GITHUB</a></li></ul></header><section class="container"><div class="post"><article class="post-block"><h1 class="post-title">Color, the known and unknown</h1><div class="post-meta"><span class="post-time">2017年10月8日</span><span class="taglist"><a href="/tags/Color" class="tag">Color</a></span></div><div class="post-content"><p>When studying the CSS framework <a href="bluma.io">Bluma</a>, I found that it use a very smart way to determine the text color based on the bg color, utiliizing the <code>color luminance</code> to decide to use black text or white text, which is interesting and I found some interesting facts to note it down.<br><a id="more"></a></p>
+<h3 id="Color-Luminance"><a href="#Color-Luminance" class="headerlink" title="Color Luminance"></a>Color Luminance</h3><p>Steven Bradley wrote an great article about <a href="http://vanseodesign.com/web-design/color-luminance/" target="_blank" rel="noopener">color luminance</a>, and here are some details:</p>
+<ol>
+<li>Our eyes have rods（视杆细胞）and cones（视锥细胞）to perceive light/dark as well as different color information; rods are responsible for seeing in low light and are sensitive to light/dark, while cones are responsible for distinguishing different colors. Moreover we have S-cones (blue), M-cones (green) and L-cones (red) for short, medium and long wavelength. – three primary colors.</li>
+<li><code>Luminance</code> is the measurement of the intensity of light that reaches our eye, while <code>brightness</code> and <code>value</code> are only the perception of an object’s luminance. <code>Lightness</code> is the brightness relative to the brightness of a similarly illuminated white.</li>
+<li>Our perception of lightness (or brightness) don’t scale linearly with luminance. The perceived luminance is dependent on both light intensity and the specific wavelength of that light (a.k.a type of color).</li>
+<li>Every color has its own natural luminance levels.</li>
+<li>Saturation also affects luminance. If you reduce the saturation of a pure color to 0% the result is a 50% grey with a 50% value for luminance.</li>
+<li>differences between HSL, HSB, and HSV:<ul>
+<li>HSB/V is measuring <strong>the amount of light</strong></li>
+<li>HSL is measuring <strong>the amount of white</strong></li>
+</ul>
+</li>
+</ol>
+<h4 id="Quantitive-Implementation"><a href="#Quantitive-Implementation" class="headerlink" title="Quantitive Implementation"></a>Quantitive Implementation</h4><p>From <a href="http://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef" target="_blank" rel="noopener">WCAG’s Definition</a>, the <code>relative luminance</code> is:</p>
+<blockquote>
+<p>the relative brightness of any point in a colorspace, normalized to 0 for darkest black and 1 for lightest white.</p>
+</blockquote>
+<p>WCAG also provides the formula for luminance:</p>
+<blockquote>
+<p>For the sRGB colorspace, the relative luminance of a color is defined as <code>L = 0.2126 * R + 0.7152 * G + 0.0722 * B</code> where R, G and B are defined.</p>
+<p>as:</p>
+<ul>
+<li>if RsRGB &lt;= 0.03928 then R = RsRGB/12.92 else R = ((RsRGB+0.055)/1.055) ^ 2.4</li>
+<li>if GsRGB &lt;= 0.03928 then G = GsRGB/12.92 else G = ((GsRGB+0.055)/1.055) ^ 2.4</li>
+<li>if BsRGB &lt;= 0.03928 then B = BsRGB/12.92 else B = ((BsRGB+0.055)/1.055) ^ 2.4</li>
+</ul>
+<p>and RsRGB, GsRGB, and BsRGB are defined as:</p>
+<ul>
+<li>RsRGB = R8bit / 255</li>
+<li>GsRGB = G8bit / 255</li>
+<li>BsRGB = B8bit / 255</li>
+</ul>
+</blockquote>
+<p><a href="bluma.io">Bluma</a> strictly implements the spec above by having such Sass function:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">@function colorLuminance($color)</div><div class="line">  $color-rgb: (&apos;red&apos;: red($color),&apos;green&apos;: green($color),&apos;blue&apos;: blue($color))</div><div class="line">  @each $name, $value in $color-rgb</div><div class="line">    $adjusted: 0</div><div class="line">    $value: $value / 255</div><div class="line">    @if $value &lt; 0.03928</div><div class="line">      $value: $value / 12.92</div><div class="line">    @else</div><div class="line">      $value: ($value + .055) / 1.055</div><div class="line">      $value: powerNumber($value, 2)</div><div class="line">    $color-rgb: map-merge($color-rgb, ($name: $value))</div><div class="line">  @return (map-get($color-rgb, &apos;red&apos;) * .2126) + (map-get($color-rgb, &apos;green&apos;) * .7152) + (map-get($color-rgb, &apos;blue&apos;) * .0722)</div></pre></td></tr></table></figure>
+<p>Another similar implementation is documented <a href="https://css-tricks.com/snippets/sass/luminance-color-function/" target="_blank" rel="noopener">here</a></p>
+<p><a href="http://www.workwithcolor.com/color-luminance-2233.htm" target="_blank" rel="noopener">Work With Color</a> says: </p>
+<blockquote>
+<p>Luminance on the other hand is a measure to describe the perceived brightness of a color</p>
+<p>Contrast as in the distance of luminance between two colors</p>
+<p>Color decisions need to consider luminance / contrast because it is key to usability.<br><a href="http://www.workwithcolor.com/hsl-color-picker-01.htm" target="_blank" rel="noopener">HSL Color Picker</a></p>
+</blockquote>
+<p>From <a href="https://css-tricks.com/snippets/sass/luminance-color-function/" target="_blank" rel="noopener">CSS Tricks’ Definition</a>:</p>
+<blockquote>
+<p>To put it simply, the luminance of a color defines whether its brightness. A luminance of 1 means the color is white. On the opposite, a luminance score of 0 means the color is black.</p>
+</blockquote>
+<p>NOTE: WCAG = Web Content Accessibility Guidelines</p>
+<h3 id="This-video-blows-my-mind"><a href="#This-video-blows-my-mind" class="headerlink" title="This video blows my mind"></a>This video blows my mind</h3><iframe width="560" height="315" src="https://www.youtube.com/embed/kVny7BswdqY" frameborder="0" allowfullscreen></iframe>
+
+<p>Notice 3:50 – that is crazy. Remember that our eyes could be cheated.</p>
+<h3 id="Color-Models"><a href="#Color-Models" class="headerlink" title="Color Models"></a>Color Models</h3><p><a href="http://colorizer.org/" target="_blank" rel="noopener">Colorizer</a> have listed all common color models.</p>
+<hr>
+<h4 id="RGB"><a href="#RGB" class="headerlink" title="RGB"></a>RGB</h4><p>From <a href="https://en.wikipedia.org/wiki/RGB_color_model" target="_blank" rel="noopener">Wikipedia</a>:</p>
+<blockquote>
+<p>The <strong>RGB color model</strong> is an addictive color model in which red, green and blue light are added together in various ways to reproduce a broad array of colors.<br>…<br>The RGB color model is <em>addictive</em> in the sense that the three light beams are added together, and their light spectra add, wavelength by wavelength, to make the final color’s spectrum. This is essentially opposite to the <em>subtractive</em> color model that applies to paints, inks, dyes and other substances whose colors depends on <em>reflecting</em> the light under which we see them.<br>…</p>
+</blockquote>
+<h5 id="why-R-G-B"><a href="#why-R-G-B" class="headerlink" title="why R,G,B"></a>why R,G,B</h5><blockquote>
+<p>The choice of primary colors (red, green, blue) is related to the physiology of the human eye; good primaries are stimuli that maximize the difference between the responses of the cone cells of the human retina to light of different wavelengths, and that thereby make a large color triangle.<br>…<br>The difference in the signals received from the three kinds allows the brain to differentiate a wide gamut of different colors.</p>
+</blockquote>
+<p><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/CIExy1931_sRGB_gamut_D65.png/440px-CIExy1931_sRGB_gamut_D65.png" alt=""></p>
+<blockquote>
+<p>The color triangle represents the range of colors which could be reproduced by additive mixing of non-negative amounts of three primary colors.</p>
+</blockquote>
+<p><a href="https://www.zhihu.com/question/19646016" target="_blank" rel="noopener">为什么 “红、黄、蓝” 是三原色？而不是其他颜色？</a><br><a href="https://www.zhihu.com/question/23839549" target="_blank" rel="noopener">光的三原色和颜料的三原色不一样吗？为什么？</a></p>
+<blockquote>
+<p>“原色”的指定并没有唯一的选法，因为就理论上而言，凡是彼此之间无法替代的颜色都可以被选为“原色”，只是目前普遍认定“光的三原色”为红绿蓝。</p>
+</blockquote>
+<h5 id="numeric-representations"><a href="#numeric-representations" class="headerlink" title="numeric representations"></a>numeric representations</h5><ul>
+<li>float</li>
+<li>percentage</li>
+<li>integer range (0,255) - decimal / hexadecimal</li>
+<li>larger integer ranges for each primary color (High-end digital image equipment)</li>
+</ul>
+<p><strong>[Concept] illuminant</strong></p>
+<p>From Wikipedia <a href="https://en.wikipedia.org/wiki/Standard_illuminant#Illuminant_series_D" target="_blank" rel="noopener">Standard Illuminant</a>:</p>
+<blockquote>
+<p>The International Commission on Illumination (usually abbreviated CIE for its French name) is th body responsible for publishing all of the well-known standard illuminants.</p>
+</blockquote>
+<p>There are many standards like Illuminant A, B, C … The most common used one is called <strong>Illuminant D</strong>, which:</p>
+<blockquote>
+<p>… represents phases of daylight, … the D series of illuminants are constructed to represent natural daylight. They are difficult to produce artificially, but are easy to characterized mathematically.</p>
+</blockquote>
+<h5 id="What-is-white"><a href="#What-is-white" class="headerlink" title="What is white?"></a>What is white?</h5><p><a href="https://en.wikipedia.org/wiki/White_point" target="_blank" rel="noopener">White Point</a></p>
+<blockquote>
+<p>A white point is a set of tristimulus values (a set of values of 3 primary colors) or chromaticity coordinates that <em>serve to define the color “white”</em> in image capture, encoding, or reproduction. Depending on the application, different definitions of white are needed to give acceptable results.</p>
+</blockquote>
+<p>SPD = Spectral Power Distribution (光谱能量分布??)</p>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Illuminant_D65" target="_blank" rel="noopener">D65</a></li>
+<li><a href="https://zh.wikipedia.org/wiki/%E6%B8%9B%E8%89%B2%E6%B3%95" target="_blank" rel="noopener">Subtractive color</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Chromaticity" target="_blank" rel="noopener">Chromaticity</a></li>
+</ul>
+<p><code>色度(Colorfulness/Chroma/Saturation)</code>, <code>色相(Hue)</code></p>
+<p><em>色度</em> 指的是色彩的纯度，也叫 <em>饱和度</em> 或者 <em>彩度</em>。</p>
+<hr>
+<h4 id="CMYK"><a href="#CMYK" class="headerlink" title="CMYK"></a>CMYK</h4><p><a href="https://en.wikipedia.org/wiki/CMYK_color_model" target="_blank" rel="noopener">CMYK - Wikipedia</a></p>
+<blockquote>
+<p>The CMYK color model (process color, four color) is a subtractive color model, used in color printing, and is also used to describe the printing process itself.</p>
+</blockquote>
+<ul>
+<li>C - Cyan</li>
+<li>M - Magenta</li>
+<li>Y - Yellow</li>
+<li>K - Key (black)</li>
+</ul>
+<h4 id="HSL"><a href="#HSL" class="headerlink" title="HSL"></a>HSL</h4><p><a href="https://zh.wikipedia.org/wiki/HSL%E5%92%8CHSV%E8%89%B2%E5%BD%A9%E7%A9%BA%E9%97%B4#.E4.BB.8EHSL.E5.88.B0RGB.E7.9A.84.E8.BD.AC.E6.8D.A2" target="_blank" rel="noopener">HSL和HSV色彩空间</a></p>
+<blockquote>
+<p>HSL和HSV都是一种将RGB色彩模型中的点在圆柱坐标系中的表示法。这两种表示法试图做到比RGB基于笛卡尔坐标系的几何结构更加直观。</p>
+</blockquote>
+<p><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Hsl-hsv_models.svg/800px-Hsl-hsv_models.svg.png" alt=""></p>
+<p>Colorizer 使用了圆锥表示 HSL：</p>
+<p><img src="http://colorizer.org/img/hsl.png" alt=""></p>
+<ul>
+<li>Hue（H），色相，是色彩的基本属性，即平时所说的颜色名称</li>
+<li>Saturation（S），饱和度，是指色彩的纯度，越高色彩越纯，低则逐渐变灰，取 0~100% 的数值</li>
+<li>Lightness（L），亮度，取 0~100%</li>
+</ul>
+<h4 id="RGB-gt-HSL"><a href="#RGB-gt-HSL" class="headerlink" title="RGB =&gt; HSL"></a>RGB =&gt; HSL</h4><p><a href="https://www.w3.org/TR/css3-color/#hsl-color" target="_blank" rel="noopener">Algorithm in CSS3 Specification</a></p>
+<p><a href="https://stackoverflow.com/a/9493060/1301194" target="_blank" rel="noopener">An JS implementation</a> based on the spec:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * Converts an HSL color value to RGB. Conversion formula</div><div class="line"> * adapted from http://en.wikipedia.org/wiki/HSL_color_space.</div><div class="line"> * Assumes h, s, and l are contained in the set [0, 1] and</div><div class="line"> * returns r, g, and b in the set [0, 255].</div><div class="line"> *</div><div class="line"> * @param   &#123;number&#125;  h       The hue</div><div class="line"> * @param   &#123;number&#125;  s       The saturation</div><div class="line"> * @param   &#123;number&#125;  l       The lightness</div><div class="line"> * @return  &#123;Array&#125;           The RGB representation</div><div class="line"> */</div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">hslToRgb</span>(<span class="params">h, s, l</span>)</span>&#123;</div><div class="line">    <span class="keyword">var</span> r, g, b;</div><div class="line"></div><div class="line">    <span class="keyword">if</span>(s == <span class="number">0</span>)&#123;</div><div class="line">        r = g = b = l; <span class="comment">// achromatic</span></div><div class="line">    &#125;<span class="keyword">else</span>&#123;</div><div class="line">        <span class="keyword">var</span> hue2rgb = <span class="function"><span class="keyword">function</span> <span class="title">hue2rgb</span>(<span class="params">p, q, t</span>)</span>&#123;</div><div class="line">            <span class="keyword">if</span>(t &lt; <span class="number">0</span>) t += <span class="number">1</span>;</div><div class="line">            <span class="keyword">if</span>(t &gt; <span class="number">1</span>) t -= <span class="number">1</span>;</div><div class="line">            <span class="keyword">if</span>(t &lt; <span class="number">1</span>/<span class="number">6</span>) <span class="keyword">return</span> p + (q - p) * <span class="number">6</span> * t;</div><div class="line">            <span class="keyword">if</span>(t &lt; <span class="number">1</span>/<span class="number">2</span>) <span class="keyword">return</span> q;</div><div class="line">            <span class="keyword">if</span>(t &lt; <span class="number">2</span>/<span class="number">3</span>) <span class="keyword">return</span> p + (q - p) * (<span class="number">2</span>/<span class="number">3</span> - t) * <span class="number">6</span>;</div><div class="line">            <span class="keyword">return</span> p;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="keyword">var</span> q = l &lt; <span class="number">0.5</span> ? l * (<span class="number">1</span> + s) : l + s - l * s;</div><div class="line">        <span class="keyword">var</span> p = <span class="number">2</span> * l - q;</div><div class="line">        r = hue2rgb(p, q, h + <span class="number">1</span>/<span class="number">3</span>);</div><div class="line">        g = hue2rgb(p, q, h);</div><div class="line">        b = hue2rgb(p, q, h - <span class="number">1</span>/<span class="number">3</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> [<span class="built_in">Math</span>.round(r * <span class="number">255</span>), <span class="built_in">Math</span>.round(g * <span class="number">255</span>), <span class="built_in">Math</span>.round(b * <span class="number">255</span>)];</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<hr>
+<h3 id="Color-Meaning"><a href="#Color-Meaning" class="headerlink" title="Color Meaning"></a>Color Meaning</h3><p><a href="http://vanseodesign.com/web-design/color-meaning/" target="_blank" rel="noopener">http://vanseodesign.com/web-design/color-meaning/</a></p>
+<blockquote>
+<p>… there is no substantive evidence that support a universal system of color meaning. It’s not that colors themselves have specific meaning, but rather that <strong>we have culturally assigned meanings to them</strong>.</p>
+<p>… it’s important to understand who your target audience is and how your audience attaches meaning to color.</p>
+</blockquote>
+<ul>
+<li><strong>warm colors:</strong> red, orange, yellow – passion, energy, impulsiveness, happiness, coziness and comfort</li>
+<li><strong>cool colors:</strong> green, blue, violet – calm, trust, professionalism, also sadness and melancholy</li>
+</ul>
+<h3 id="TODO"><a href="#TODO" class="headerlink" title="TODO"></a>TODO</h3><ul>
+<li>HSB/HSV</li>
+<li>HSI (Hue, Saturation, Intensity) ???</li>
+<li><a href="http://vanseodesign.com/web-design/color-theory/" target="_blank" rel="noopener">Color Theory, The Color Wheel And Color Schemes</a></li>
+<li><a href="http://vanseodesign.com/web-design/whitespace/" target="_blank" rel="noopener">Whitespace: Less Is More In Web Design</a></li>
+<li><a href="http://vanseodesign.com/web-design/design-basics-repetition/" target="_blank" rel="noopener">Design Basics: Repetition To Create Visual Themes</a></li>
+<li><a href="http://www.color-wheel-pro.com/color-theory-basics.html" target="_blank" rel="noopener">Color Theory Basics</a></li>
+<li><a href="http://www.tigercolor.com/color-lab/color-theory/color-harmonies.htm" target="_blank" rel="noopener">Basic techniques for combining colors</a></li>
+<li><a href="http://therefractedlight.blogspot.jp/2010/06/luminance-is-more-important-than-color.html" target="_blank" rel="noopener">Luminance is More Important than Color, The Refracted Light</a></li>
+<li><a href="http://vanseodesign.com/web-design/color-systems-1/" target="_blank" rel="noopener">Color Systems — Part 1</a></li>
+<li><a href="http://vanseodesign.com/web-design/color-systems-2/" target="_blank" rel="noopener">Color Systems — Part 2</a></li>
+</ul>
+</div></article></div></section><footer><div class="paginator"><a href="/2018/01/05/time-management-brief-intro/" class="prev">上一篇</a><a href="/2017/08/21/electron-first-glance/" class="next">下一篇</a></div><div id="disqus_thread"></div><script>/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+
+var disqus_config = function () {
+    this.page.url = 'http://afantasy.ninja/2017/10/08/color-notes/';
+    // Replace PAGE_URL with your page's canonical URL variable
+    this.page.identifier = '2017/10/08/color-notes/';
+    // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+(function() { // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    s.src = 'https://afantasy-ninja.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the<a href="https://disqus.com/?ref_noscript">comments powered by Disqus</a></noscript><script id="dsq-count-scr" src="//afantasy-ninja.disqus.com/count.js" async></script><div class="copyright"><p>© 2015 - 2018 <a href="http://afantasy.ninja">Allen</a>, unless otherwise noted.</p></div></footer><script src="https://cdn.bootcss.com/mathjax/2.5.3/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script src="https://s22.cnzz.com/z_stat.php?id=1261988857&amp;web_id=1261988857"></script><script>document.querySelector('[title="站长统计"]').style.display = 'none'</script></body></html>

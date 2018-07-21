@@ -1,0 +1,143 @@
+<!DOCTYPE html><html lang="zh-cn"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title> HTML - 预解析, async/defer 和 preload · A Fantasy Ninja</title><meta name="description" content="HTML - 预解析, async/defer 和 preload - Allen"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="short icon" href="/favicon.png"><link rel="stylesheet" href="/css/apollo.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600" type="text/css"></head><body><header><a href="/" class="logo-link"><img src="/favicon.png"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="https://github.com/allenfantasy" target="_blank" class="nav-list-link">GITHUB</a></li></ul></header><section class="container"><div class="post"><article class="post-block"><h1 class="post-title">HTML - 预解析, async/defer 和 preload</h1><div class="post-meta"><span class="post-time">2018年1月13日</span><span class="taglist"><a href="/tags/Browser" class="tag">Browser</a></span></div><div class="post-content"><p>本文是关于 @mactavish 学弟在众成翻译上翻译的文章 <a href="http://www.zcfy.cc/article/building-the-dom-faster-speculative-parsing-async-defer-and-preload-x2605-mozilla-hacks-8211-the-web-developer-blog-4224.html" target="_blank" rel="noopener">更快地构建 DOM: 使用预解析, async, defer 以及 preload ★ Mozilla Hacks – the Web developer blog</a> 的阅读笔记。特此感谢。<br><a id="more"></a></p>
+<h3 id="Parsing"><a href="#Parsing" class="headerlink" title="Parsing"></a>Parsing</h3><p>首先我们需要了解浏览器正常的文档解析流程（Parsing）：</p>
+<ul>
+<li>浏览器引擎的解析器会将 HTML 转换成 DOM（解析，DOM 的构建）</li>
+<li>在解析 HTML 字符串的过程中，DOM 节点逐个被添加到树中</li>
+<li>在 DOM 中，对象被关联在树中用户捕获标签之间的父子关系</li>
+<li>CSS 样式被映射到 <a href="https://developer.mozilla.org/en-US/docs/Web/API/CSS_Object_Model" target="_blank" rel="noopener">CSSOM</a> 上<ul>
+<li>CSS 规则会互相覆盖，所以浏览器引擎需要进行复杂计算，以确定 CSS 代码如何应用到 DOM</li>
+<li>CSS 可能会阻塞解析：<ul>
+<li>当解析器获取一个 <code>&lt;script&gt;</code> 标签时，DOM 将等待 JavaScript 执行完毕后继续构建；</li>
+<li>若有 CSS 样式表先于该标签，则该标签的 JavaScript 代码将等待 CSS 下载，解析，且 CSSOM 可以使用时，才会执行</li>
+</ul>
+</li>
+<li>CSS 会阻塞 DOM 的渲染：直到 DOM 和 CSSOM 准备好之前，浏览器什么都不会显示。 <ul>
+<li>FOUC - Flash of Unstyled Content: 没有任何样式的页面突然变换成了有样式的。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="http://p0.qhimg.com/t01e10b4f03dd61fc92.png" alt=""></p>
+<h5 id="CSSOM"><a href="#CSSOM" class="headerlink" title="CSSOM"></a><a href="https://developer.mozilla.org/en-US/docs/Web/API/CSS_Object_Model" target="_blank" rel="noopener">CSSOM</a></h5><blockquote>
+<p>CSS Object Model is a set of APIs allowing to manipulate CSS from JavaScript…It allows to read and modify CSS style dynamically.</p>
+</blockquote>
+<p>一系列的可以操作 CSS 样式的 JS 方法。</p>
+<p><code>CSS.supports</code></p>
+<p><code>@supports</code> CSS at-rule</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">@<span class="keyword">supports</span> (display: flex) &#123;</div><div class="line">  <span class="selector-tag">div</span> &#123;</div><div class="line">    <span class="attribute">display</span>: flex;</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">@<span class="keyword">supports</span> not (display: flex) &#123;</div><div class="line">  <span class="selector-tag">div</span> &#123;</div><div class="line">    <span class="attribute">float</span>: right;</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">@<span class="keyword">supports</span> (display: flexbox) and (not (display: inline-grid)) &#123;</div><div class="line">  <span class="comment">/* blah ... */</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<hr>
+<h3 id="预解析-Speculative-Parsing"><a href="#预解析-Speculative-Parsing" class="headerlink" title="预解析 Speculative Parsing"></a>预解析 Speculative Parsing</h3><blockquote>
+<p>它的概念是：虽然在执行脚本时构建 DOM 是不安全的，但是你仍然可以解析 HTML 来查看其它需要检索的资源。找到的文件会被添加到一个列表里并开始 <strong>在后台并行地下载</strong> 。当脚本执行完毕之后，这些文件很可能已经下载完成了。</p>
+</blockquote>
+<p><del>说人话：就是会提前的下载 HTML 页面上声明了的脚本…</del></p>
+<p><em>下载是并行的，执行是先后的</em>，以这种方式触发的下载请求称为”预测“，因为很有可能脚本还是会改变 HTML 结构，导致预测的浪费（即下载的脚本是无效的，并不会被执行），但这并不常见，所以预解析仍然可以带来很大的性能提升。</p>
+<p><img src="https://hacks.mozilla.org/files/2017/09/waterfall-2-bold@2x.png" alt=""></p>
+<ul>
+<li>预加载的内容：<ul>
+<li>脚本</li>
+<li>外部 CSS</li>
+<li>来自 <code>&lt;img&gt;</code> 标签的图片</li>
+<li>Firefox 预加载 video 元素 <code>poster</code> 属性</li>
+<li>Chrome/Safari 预加载 <code>@import</code> 内联样式</li>
+</ul>
+</li>
+<li>预加载会受到浏览器并行下载文件的数量限制（HTTP 1.x），如 Chrome 浏览器最多只能并行下载6个文件。</li>
+<li>预解析时，浏览器不会执行内联的 JS 代码块。</li>
+<li>用 JS 加载不那么重要的内容来避免预解析，这里的意思是说，页面上某些不重要的脚本，相比于其他必需脚本来说，是应该 <strong>迟下载，迟执行</strong> 的，通过用 JS 动态加载它们，它们就不会一开始出现在 HTML 文档的 <code>&lt;script&gt;</code> 标签中，则浏览器的预解析不会处理它们（相对的就会更优先的解析必需脚本）</li>
+</ul>
+<p><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Optimizing_your_pages_for_speculative_parsing" target="_blank" rel="noopener">MDN 的文档</a> 中提到：</p>
+<ul>
+<li>Firefox 4 及之后的版本的 HTML 解析器支持在预解析时不使用浏览器的主线程，从而可以达到不阻塞正常 DOM 构建和渲染的效果。</li>
+<li>尽量确保预加载成功：如果使用了 <code>&lt;base&gt;</code> 元素指定页面加载资源的根地址（base URI），则确保不要用 JS 去加载该元素（注：放到 <code>&lt;head&gt;</code> 标签里就可以了）</li>
+<li>避免预解析构建的 DOM 树失效，这里需要避免一些对 <code>document.write</code> 方法的滥用，具体可以看 MDN 文档中 “Avoid losing tree builder output” 一节中列出的几个点</li>
+</ul>
+<h3 id="defer-和-async"><a href="#defer-和-async" class="headerlink" title="defer 和 async"></a>defer 和 async</h3><ul>
+<li><code>defer</code> 和 <code>async</code> 在下载时都不会阻塞 HTML 解析器的执行（解析 DOM）</li>
+<li><code>defer</code> 和 <code>async</code> 之间的不同是他们开始执行脚本的时机的不同</li>
+<li><p><code>defer</code> 脚本在 HTML 文档解析完全完成之后才开始执行，处在 <code>DOMContentLoaded</code> 事件之前。保证脚本会按照它在 HTML 中出现的顺序执行，且不会阻塞解析</p>
+<ul>
+<li><p>但根据红宝书的说法，在一个页面中最好只有一个带 <code>defer</code> 的脚本；保险起见，在 <code>DOMContentLoaded</code> 的事件回调中执行实际的业务代码：</p>
+<blockquote>
+<p>HTML5规范要求脚本按照它们出现的先后顺序执行，因此第一个延迟脚本会先于第二个延迟脚本执行，而这两个脚本会先于DOMContentLoaded事件执行。在现实当中，延迟脚本并不一定会按照顺序执行，也不一定会在 DOMContentLoaded 事件触发前执行，因此最好只包含一个延迟脚本。</p>
+</blockquote>
+</li>
+<li><p>红宝书的说法是有实锤的，在 <a href="https://github.com/h5bp/lazyweb-requests/issues/42#issuecomment-1776866" target="_blank" rel="noopener">这个issue中</a> 有人做了实验确认了 Firefox 在处理 <code>defer</code> 属性脚本时，脚本的代码是在 <code>DOMContentLoaded</code> 事件后才执行的；同时，在 IE&lt;=9 时，<code>defer</code> 脚本的顺序执行也不能保证。</p>
+</li>
+</ul>
+</li>
+<li><p><code>async</code> 脚本在它们完成下载后的第一时间执行，它处在 window 的 <code>load</code> 事件之前，有可能（并且很有可能）设置了 async 的脚本不会按照它们在 HTML 中出现的顺序执行，它们可能会中断 DOM 的构建。</p>
+<ul>
+<li>多个 <code>async</code> 脚本之前的执行顺序不总是它们的出现顺序，而取决于 <strong>哪个文件先完成下载</strong></li>
+<li>经典使用场景：不依赖于 DOM 的第三方脚本，例如 Google Analytics</li>
+<li><p>引用 <a href="https://css-tricks.com/async-attribute-scripts-bottom/" target="_blank" rel="noopener">CSS Tricks</a> 中的描述：</p>
+<blockquote>
+<p>If you use the async attribute, you are saying: I don’t want the browser to stop what it’s doing while it’s downloading this script.</p>
+</blockquote>
+</li>
+<li><p><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#Attributes" target="_blank" rel="noopener">MDN 文档</a> 的说法是：</p>
+<blockquote>
+<p>Dynamically inserted scripts execute asynchronously by default, so to turn on synchronous execution (i.e. scripts execute in the order they were inserted) set async=false</p>
+</blockquote>
+</li>
+</ul>
+</li>
+<li>没有 <code>defer</code> 或者 <code>async</code> 属性的脚本，包括行内脚本（inline scripts）会（在 HTML 解析到时）立刻下载并执行，之后浏览器继续解析页面（文档）「注：即阻塞解析」</li>
+<li>若同时使用 <code>defer</code> 和 <code>async</code>，则以 <code>async</code> 为准，当浏览器不支持 <code>async</code> 时，回退到 <code>defer</code></li>
+<li>兼容性：<ul>
+<li><code>defer</code> 在 IE6-9 中的实现有问题（并不按规范实现），<a href="https://caniuse.com/#search=defer" target="_blank" rel="noopener">IE10+ 完整支持</a></li>
+<li><code>async</code> <a href="https://caniuse.com/#search=async" target="_blank" rel="noopener">IE10+</a></li>
+</ul>
+</li>
+<li>一张图直观的表达：</li>
+</ul>
+<p><img src="https://sfault-image.b0.upaiyun.com/28/4a/284aec5bb7f16b3ef4e7482110c5ddbb_articlex" alt=""></p>
+<h3 id="preload"><a href="#preload" class="headerlink" title="preload"></a><code>preload</code></h3><p>使用 <code>&lt;link rel=&quot;preload&quot;&gt;</code> 告知浏览器对资源进行预先的加载：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">"preload"</span> <span class="attr">href</span>=<span class="string">"very_important.js"</span> <span class="attr">as</span>=<span class="string">"script"</span>&gt;</span></div></pre></td></tr></table></figure>
+<p><code>as</code> 属性的可能的值有：</p>
+<ul>
+<li>script</li>
+<li>style</li>
+<li>image</li>
+<li>font</li>
+<li>audio</li>
+<li>video</li>
+</ul>
+<p>预加载字体需要设置 <code>crossorigin</code> 属性，即使字体在同一个域名下：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">"preload"</span> <span class="attr">href</span>=<span class="string">"font.woff"</span> <span class="attr">as</span>=<span class="string">"font"</span> <span class="attr">crossorigin</span>&gt;</span></div></pre></td></tr></table></figure>
+<p><code>preload</code> 目前<a href="https://caniuse.com/#search=preload" target="_blank" rel="noopener">仅在部分新版本的 Chrome 和 Firefox 上得到支持。</a></p>
+<h3 id="More"><a href="#More" class="headerlink" title="More?"></a>More?</h3><p>其实还有一个问题：如果有一部分 CSS 是在页面所有的 HTML 加载结束之后再被动态插入，此时的 CSSOM 是否会被重新构建？如果同时又有 JS 脚本需要执行，其先后顺序如何？</p>
+<p>所以有空的话，顺便也了解下浏览器运作机制呗：</p>
+<ul>
+<li><a href="https://www.html5rocks.com/en/tutorials/internals/howbrowserswork/" target="_blank" rel="noopener">How Browsers Work: Behind the scenes of modern web browsers</a> (<a href="https://www.html5rocks.com/zh/tutorials/internals/howbrowserswork/" target="_blank" rel="noopener">中文版</a>)</li>
+<li><a href="https://hacks.mozilla.org/2017/05/quantum-up-close-what-is-a-browser-engine/" target="_blank" rel="noopener">Quantum Up Close: What is a browser engine?</a></li>
+</ul>
+<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><ul>
+<li><a href="http://www.zcfy.cc/article/building-the-dom-faster-speculative-parsing-async-defer-and-preload-x2605-mozilla-hacks-8211-the-web-developer-blog-4224.html" target="_blank" rel="noopener">更快地构建 DOM: 使用预解析, async, defer 以及 preload ★ Mozilla Hacks – the Web developer blog</a></li>
+<li><a href="https://hacks.mozilla.org/2017/09/building-the-dom-faster-speculative-parsing-async-defer-and-preload/" target="_blank" rel="noopener">Building the DOM faster: speculative parsing, async, defer and preload</a></li>
+<li><a href="https://github.com/h5bp/lazyweb-requests/issues/42" target="_blank" rel="noopener">script[defer] doesn’t work in IE&lt;=9</a></li>
+<li><a href="https://segmentfault.com/a/1190000006778717" target="_blank" rel="noopener">浅谈script标签的defer和async</a></li>
+<li><a href="http://levy.work/2017-01-25-script-defer-and-async/" target="_blank" rel="noopener">使用defer或async加载脚本</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Optimizing_your_pages_for_speculative_parsing" target="_blank" rel="noopener">Optimizing your pages for speculative parsing, MDN</a></li>
+<li><a href="https://css-tricks.com/thinking-async/" target="_blank" rel="noopener">Thinking Async, CSS Tricks</a></li>
+<li><a href="https://css-tricks.com/async-attribute-scripts-bottom/" target="_blank" rel="noopener">Async Attribute and Scripts At The Bottom, CSS Tricks</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CSS_Object_Model" target="_blank" rel="noopener">CSSOM, MDN</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script" target="_blank" rel="noopener"><code>&lt;script&gt;</code> element, MDN</a></li>
+</ul>
+</div></article></div></section><footer><div class="paginator"><a href="/2018/04/08/co-source-reading/" class="prev">上一篇</a><a href="/2018/01/05/time-management-brief-intro/" class="next">下一篇</a></div><div id="disqus_thread"></div><script>/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+
+var disqus_config = function () {
+    this.page.url = 'http://afantasy.ninja/2018/01/13/speculative-parsing-async-defer-perload/';
+    // Replace PAGE_URL with your page's canonical URL variable
+    this.page.identifier = '2018/01/13/speculative-parsing-async-defer-perload/';
+    // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+(function() { // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    s.src = 'https://afantasy-ninja.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the<a href="https://disqus.com/?ref_noscript">comments powered by Disqus</a></noscript><script id="dsq-count-scr" src="//afantasy-ninja.disqus.com/count.js" async></script><div class="copyright"><p>© 2015 - 2018 <a href="http://afantasy.ninja">Allen</a>, unless otherwise noted.</p></div></footer><script src="https://cdn.bootcss.com/mathjax/2.5.3/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script src="https://s22.cnzz.com/z_stat.php?id=1261988857&amp;web_id=1261988857"></script><script>document.querySelector('[title="站长统计"]').style.display = 'none'</script></body></html>

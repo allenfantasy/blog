@@ -1,0 +1,93 @@
+<!DOCTYPE html><html lang="zh-cn"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title> 网站统计那些事（一）：背景与基础概念 · A Fantasy Ninja</title><meta name="description" content="网站统计那些事（一）：背景与基础概念 - Allen"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="short icon" href="/favicon.png"><link rel="stylesheet" href="/css/apollo.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600" type="text/css"></head><body><header><a href="/" class="logo-link"><img src="/favicon.png"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="https://github.com/allenfantasy" target="_blank" class="nav-list-link">GITHUB</a></li></ul></header><section class="container"><div class="post"><article class="post-block"><h1 class="post-title">网站统计那些事（一）：背景与基础概念</h1><div class="post-meta"><span class="post-time">2017年5月8日</span><span class="taglist"><a href="/tags/JavaScript" class="tag">JavaScript</a><a href="/tags/User Tracking" class="tag">User Tracking</a></span></div><div class="post-content"><p>网站统计系列的第一篇。没有代码的湿货。<br><a id="more"></a></p>
+<p>在去年的3-6月，我和另一位同事负责对公司各 Web 站点所使用的统计脚本及管理后台进行改造；本文算作是对这个工程的一个系统的总结。</p>
+<p>内容很多，这一篇会先着重讲网站统计的需求背景以及一些基本概念。</p>
+<p>传送门：</p>
+<ul>
+<li><a href="../user-tracking-ii">网站统计那些事（二）：统计脚本实现（上）</a></li>
+<li><a href="../user-tracking-iii">网站统计那些事（三）：统计脚本实现（下）</a></li>
+<li><a href="../user-tracking-iv">网站统计那些事（四）：工程化，模块化与测试</a></li>
+</ul>
+<h2 id="网站统计的目的"><a href="#网站统计的目的" class="headerlink" title="网站统计的目的"></a>网站统计的目的</h2><p>关于网站的数据统计，市面上已有 Google Analytics，百度统计，友盟等第三方服务商提供相应的服务。之所以需要自己重新做一个，是出于公司内部的一些定制的需求和指标上的差异。</p>
+<p>虽然标题写的是 “网站统计”，但实际上我们所编写的统计脚本，其目标对象应该是所有 Web 的网页，可以是传统的网站站点，也可以是嵌套在 Webview 中的网页，甚至是小程序，以及任何可以自由加载外来 JS 脚本的页面。但为了理解方便，下文中我将使用 “网站统计” 来代指这类统计的需求或内容。</p>
+<p>对于网站/网页的运营者来说，通过网站数据他们希望得知的信息有：</p>
+<ol>
+<li>了解网站/网页的热度（哪个页面访问量大，哪个页面访问量小，页面访问量随着时间的变化）</li>
+<li>对访客进行分析（访客的地域分布，使用的设备等）</li>
+<li>监控网站自身变化对访客产生的影响<ul>
+<li>上线新的版面（观察上线动作前后的数据差异）</li>
+<li>对某种功能特性进行 A/B Testing（对两种策略的数据对比）</li>
+<li>bla…</li>
+</ul>
+</li>
+<li>访客在页面上的行为（点击，高亮等等）</li>
+</ol>
+<p>一言蔽之，网站统计的目的就是 <strong><em>为网站运营和开发者提供数据参考</em></strong>。</p>
+<h2 id="网站统计如何工作？"><a href="#网站统计如何工作？" class="headerlink" title="网站统计如何工作？"></a>网站统计如何工作？</h2><p><img src="/images/web-stat-process.png" alt=""></p>
+<p>上图简要的说明了网站统计过程中的四个步骤：上报（log），数据处理（process），数据存储（store）和数据展示（display）。</p>
+<p>首先，我们向业务方提供一份可搜集用户信息并发起上报的 JS 脚本。各个业务方在其产品（网站，移动 App 内嵌的 Webview 页面等）中使用该 JS 脚本。</p>
+<p>我们采用了服务器集群来对上报请求进行负载均衡，所收集到的上报请求均以 <strong>日志文件</strong> 的形式储存在集群各机器中。</p>
+<p>在数据处理阶段，我们采用定时的 Hive 任务读取各服务器上的日志，进行计算后写入到业务层的 MySQL 中，最终再由 MySQL 向 Web 后台站点提供数据，显示可视化报表。</p>
+<p>那么 作为网站运营者所关心的指标又是什么？JS 脚本是如何向服务器发起上报的？具体上报的内容是什么？</p>
+<p>我们先来回答第一个问题。这要从网站统计的基本概念开始谈起。</p>
+<h2 id="网站统计的基本概念：PV-UV-和-IP"><a href="#网站统计的基本概念：PV-UV-和-IP" class="headerlink" title="网站统计的基本概念：PV, UV 和 IP"></a>网站统计的基本概念：PV, UV 和 IP</h2><p>在整个网站统计中，PV, UV 和 IP 是最核心的三个基本指标。</p>
+<h4 id="PV"><a href="#PV" class="headerlink" title="PV"></a>PV</h4><p>PV 顾名思义，是某个网页被访问的次数，<a href="https://en.wikipedia.org/wiki/Page_view" target="_blank" rel="noopener">维基百科</a> 的定义如下：</p>
+<blockquote>
+<p>A page view (PV) or page impression is a request to load a single HTML file (web page) of an Internet site.</p>
+</blockquote>
+<p><a href="https://support.google.com/analytics/answer/6086080?hl=en" target="_blank" rel="noopener">Google Analytics</a> 的定义如下：</p>
+<blockquote>
+<p>An instance of a page being loaded (or reloaded) in a browser. Pageviews is a metric defined as the total number of pages viewed.</p>
+</blockquote>
+<p><a href="http://tongji.baidu.com/web/help/article?id=253&amp;type=0" target="_blank" rel="noopener">百度统计</a> 对 PV 的定义：</p>
+<blockquote>
+<p>即通常说的Page View(pv)，用户每打开一个网站页面就被记录1次。用户多次打开同一页面，浏览量值累计。</p>
+</blockquote>
+<p>从维基百科的定义，可以理解为 PV 是 <strong>某个网页的 url 被请求的次数</strong>；GA 认为这个指标和 <code>loaded</code> 有关 —— 也就是说 <strong>前提条件是页面的加载完成</strong>；百度统计的描述其实非常模糊，并没有声明 “打开一个网站界面” 的关键步骤（时间点）究竟是什么。</p>
+<p>如果从直观的效果来讲，个人认为应该等到用户访问的页面完成加载了之后（也就是用户已经看到了页面）再视作一次 PV，可能会更加准确一些。</p>
+<p>不过从百度统计的代码上看，其代码的主函数是在 <code>DOMContentLoaded</code> 或 <code>onload</code> 事件（使用两个事件的原因是处于兼容性考虑）触发的回调函数中被唤起的，也就是说其上报策略是在用户看到页面加载的内容后才进行上报。</p>
+<h4 id="UV-独立访客数"><a href="#UV-独立访客数" class="headerlink" title="UV - 独立访客数"></a>UV - 独立访客数</h4><p>在查阅 GA 相应文档时，我并没有找到对应 UV 的说法，比较接近的 <a href="https://support.google.com/analytics/answer/3123669" target="_blank" rel="noopener">User-ID Views</a> 是针对已登录用户在含用户系统的站点中的用户访问情况。</p>
+<p><a href="http://tongji.baidu.com/web/help/article?id=253&amp;type=0" target="_blank" rel="noopener">百度统计中的定义</a>:</p>
+<blockquote>
+<p>一天之内您网站的独立访客数(以Cookie为依据)，一天内同一访客多次访问您网站只计算1个访客(uv)。</p>
+</blockquote>
+<p>这里所提到的 “独立访客数”, 在技术实现上通常是由 JS SDK 生成一个唯一的 ui token 作为用户标识。所以 UV 数据的本质是将一定时间内的用户访问记录，根据 Cookie 所得的 ui token 来进行去重所得到的值，这个值是以 <strong>单个设备上的浏览器</strong> 为准的。</p>
+<p>用 PV 数除以 UV 数得到的比值 PV/UV，可以较模糊地反映单个用户对某个页面的黏度。</p>
+<h4 id="IP-独立-IP-数"><a href="#IP-独立-IP-数" class="headerlink" title="IP - 独立 IP 数"></a>IP - 独立 IP 数</h4><p>根据访问站点的 IP 对 PV 数据进行去重后得到的数据。从目前的情况来看，所起到的作用是从宏观上让我们对页面的分布广度有一个模糊的了解。</p>
+<h4 id="核心指标的计算意义"><a href="#核心指标的计算意义" class="headerlink" title="核心指标的计算意义"></a>核心指标的计算意义</h4><p>值得一提的是，PV/UV/IP 这三个指标，必须要对限定时间内的所有数据进行计算才有意义，比如计算 “2017.5.1-2017.5.7” 的 UV，必须要将这7天的所有访问记录根据 ui token 来进行去重，所得到的数据才是有效的，不能够单纯的将 2017.5.1-2017.5.7 这7天的 UV 进行相加。</p>
+<h2 id="运营人员关心的指标"><a href="#运营人员关心的指标" class="headerlink" title="运营人员关心的指标"></a>运营人员关心的指标</h2><p>读者应该能够意识到，其实 PV/UV/IP 的计算其实只需要在上报时带上 ui token 的参数，在服务端就可以根据日志计算出来。通过分析这三个指标，我们已经可以了解网站整体的流量大小。</p>
+<p>但我们还需要了解网站用户的构成，以及在不同条件下网站流量的变化和分布，具体包括：</p>
+<ol>
+<li>网站流量关于时间的分布</li>
+<li>网站用户在不同维度下的构成状况，维度包括：<ul>
+<li>所在位置（地域分布）</li>
+<li>PC端 / 移动端</li>
+<li>浏览器</li>
+<li>操作系统</li>
+<li>手机型号</li>
+<li>…</li>
+</ul>
+</li>
+</ol>
+<p>其中最核心的是关于时间的分布 - 网站运营者需要了解在一定时间内核心指标的变动，特别是在网站改版或者是进行运营活动的前后。这也是后台数据展示的最基本形式。</p>
+<p>而观察用户在不同维度的构成状况，本质上就是计算在某些条件下某个时间点或时间段下的网站流量，如：</p>
+<blockquote>
+<p>计算2017年5月份广州市使用移动端站点的安卓用户数量变化。</p>
+</blockquote>
+<p>这就要求我们能够了解每条上报的日志所关联的用户访问的设备信息以及所处地域。所以统计脚本在上报之前，还需要搜集用户请求相关的信息。这一点我们在下一篇博客中会详细讨论。</p>
+</div></article></div></section><footer><div class="paginator"><a href="/2017/05/08/user-tracking-ii/" class="prev">上一篇</a><a href="/2017/04/20/js-promise-note/" class="next">下一篇</a></div><div id="disqus_thread"></div><script>/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+
+var disqus_config = function () {
+    this.page.url = 'http://afantasy.ninja/2017/05/08/user-tracking-i/';
+    // Replace PAGE_URL with your page's canonical URL variable
+    this.page.identifier = '2017/05/08/user-tracking-i/';
+    // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+(function() { // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    s.src = 'https://afantasy-ninja.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the<a href="https://disqus.com/?ref_noscript">comments powered by Disqus</a></noscript><script id="dsq-count-scr" src="//afantasy-ninja.disqus.com/count.js" async></script><div class="copyright"><p>© 2015 - 2018 <a href="http://afantasy.ninja">Allen</a>, unless otherwise noted.</p></div></footer><script src="https://cdn.bootcss.com/mathjax/2.5.3/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script src="https://s22.cnzz.com/z_stat.php?id=1261988857&amp;web_id=1261988857"></script><script>document.querySelector('[title="站长统计"]').style.display = 'none'</script></body></html>
