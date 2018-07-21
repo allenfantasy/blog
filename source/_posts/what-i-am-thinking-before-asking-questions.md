@@ -1,4 +1,5 @@
 title: 当提技术问题前我在想什么
+date: 2016-02-09
 tags:
 - LifeHack
 ---
