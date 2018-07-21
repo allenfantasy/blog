@@ -1,0 +1,8 @@
+* [ACCEPT-ENCODING: IT'S VARY IMPORTANT](https://blog.stackpath.com/accept-encoding-vary-important)
+* [HTTP 协议中 Vary 的一些研究](https://imququ.com/post/vary-header-in-http.html)
+* [Is Vary: Accept-Encoding overkill?, StackOverflow](https://stackoverflow.com/questions/14540490/is-vary-accept-encoding-overkill)
+* [What does vary:accept-encoding mean?, StackOverflow](https://stackoverflow.com/questions/7848796/what-does-varyaccept-encoding-mean)
+* [Optimizing Encoding and Transfer Size of Text-Based Assets, Web Fundamentals - Google Developers](https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/optimize-encoding-and-transfer?hl=en)
+* [IE 与 Vary 头](http://hax.iteye.com/blog/1629953)
+* [HTTP 协议中的 Content-Encoding](https://imququ.com/post/content-encoding-header-in-http.html)
+* [Accept-Encoding, MDN](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Accept-Encoding)
