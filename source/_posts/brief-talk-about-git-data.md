@@ -1,5 +1,5 @@
 title: 浅析 git 数据管理
-date: 2019-09-01
+date: 2019-09-01 22:25
 tags:
 - git
 
@@ -35,9 +35,9 @@ tags:
 - 分支的秘密
   - 从分叉到分支
   - HEAD
-  - ref, refs! {WIP}
+  - ref, refs!
   - 分支的合并
-- 回到 .pack 文件 -- git 优化
+- 回到 .pack 文件
 
 ## 版本控制的本质
 
