@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://afantasy.ninja/"/>
-  <updated>2019-09-01T14:13:26.076Z</updated>
+  <updated>2019-09-01T14:25:35.144Z</updated>
   <id>http://afantasy.ninja/</id>
   
   <author>
@@ -19,8 +19,8 @@
     <title>浅析 git 数据管理</title>
     <link href="http://afantasy.ninja/2019/09/01/brief-talk-about-git-data/"/>
     <id>http://afantasy.ninja/2019/09/01/brief-talk-about-git-data/</id>
-    <published>2019-08-31T16:00:00.000Z</published>
-    <updated>2019-09-01T14:13:26.076Z</updated>
+    <published>2019-09-01T14:25:00.000Z</published>
+    <updated>2019-09-01T14:25:35.144Z</updated>
     
     <content type="html"><![CDATA[<p>两个月前，团队来了个新的实习生。我们让他协助开发一个 Java 服务。第二天发生了一个鬼故事：</p>
 <blockquote>
