@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://afantasy.ninja/"/>
-  <updated>2019-09-01T14:11:03.460Z</updated>
+  <updated>2019-09-01T14:13:26.076Z</updated>
   <id>http://afantasy.ninja/</id>
   
   <author>
@@ -16,16 +16,17 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
-    <title></title>
-    <link href="http://afantasy.ninja/2019/06/08/brief-talk-about-git-data/"/>
-    <id>http://afantasy.ninja/2019/06/08/brief-talk-about-git-data/</id>
-    <published>2019-06-08T09:59:46.875Z</published>
-    <updated>2019-09-01T14:11:03.460Z</updated>
+    <title>浅析 git 数据管理</title>
+    <link href="http://afantasy.ninja/2019/09/01/brief-talk-about-git-data/"/>
+    <id>http://afantasy.ninja/2019/09/01/brief-talk-about-git-data/</id>
+    <published>2019-08-31T16:00:00.000Z</published>
+    <updated>2019-09-01T14:13:26.076Z</updated>
     
-    <content type="html"><![CDATA[<h1 id="浅析-git-数据管理"><a href="#浅析-git-数据管理" class="headerlink" title="浅析 git 数据管理"></a>浅析 git 数据管理</h1><p>两个月前，团队来了个新的实习生。我们让他协助开发一个 Java 服务。第二天发生了一个鬼故事：</p>
+    <content type="html"><![CDATA[<p>两个月前，团队来了个新的实习生。我们让他协助开发一个 Java 服务。第二天发生了一个鬼故事：</p>
 <blockquote>
 <p><em>实习生花了1个小时来下载 git 工作仓库</em></p>
 </blockquote>
+<a id="more"></a>
 <p>好不容易下载到本地，可见的代码本身只有几十 M 的大小，但在命令行中查看仓库时，发现在 <code>.git</code> 目录中有一个名为 <code>xxxx.pack</code> 的文件，大小竟然有 1.6G。</p>
 <p>这时我和实习生都懵逼了：</p>
 <blockquote>
@@ -375,10 +376,15 @@
     
     <summary type="html">
     
-      &lt;h1 id=&quot;浅析-git-数据管理&quot;&gt;&lt;a href=&quot;#浅析-git-数据管理&quot; class=&quot;headerlink&quot; title=&quot;浅析 git 数据管理&quot;&gt;&lt;/a&gt;浅析 git 数据管理&lt;/h1&gt;&lt;p&gt;两个月前，团队来了个新的实习生。我们让他协助开发一个 Java 服务
+      &lt;p&gt;两个月前，团队来了个新的实习生。我们让他协助开发一个 Java 服务。第二天发生了一个鬼故事：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;实习生花了1个小时来下载 git 工作仓库&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
     
     </summary>
     
+    
+      <category term="git" scheme="http://afantasy.ninja/tags/git/"/>
     
   </entry>
   
