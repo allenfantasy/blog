@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://afantasy.ninja/"/>
-  <updated>2019-09-01T14:25:35.144Z</updated>
+  <updated>2019-09-01T14:32:43.780Z</updated>
   <id>http://afantasy.ninja/</id>
   
   <author>
@@ -20,7 +20,7 @@
     <link href="http://afantasy.ninja/2019/09/01/brief-talk-about-git-data/"/>
     <id>http://afantasy.ninja/2019/09/01/brief-talk-about-git-data/</id>
     <published>2019-09-01T14:25:00.000Z</published>
-    <updated>2019-09-01T14:25:35.144Z</updated>
+    <updated>2019-09-01T14:32:43.780Z</updated>
     
     <content type="html"><![CDATA[<p>两个月前，团队来了个新的实习生。我们让他协助开发一个 Java 服务。第二天发生了一个鬼故事：</p>
 <blockquote>
@@ -46,11 +46,11 @@
 <li>分支的秘密<ul>
 <li>从分叉到分支</li>
 <li>HEAD</li>
-<li>ref, refs! {WIP}</li>
+<li>ref, refs!</li>
 <li>分支的合并</li>
 </ul>
 </li>
-<li>回到 .pack 文件 – git 优化</li>
+<li>回到 .pack 文件</li>
 </ul>
 <h2 id="版本控制的本质"><a href="#版本控制的本质" class="headerlink" title="版本控制的本质"></a>版本控制的本质</h2><p>想象一下，我们正在开发一个项目：没有 git，没有 SVN，没有任何可用工具。<strong>我们如何保证：可以保留这个项目不同的版本，当某一个版本出了问题时，可以回到上一个版本呢？</strong></p>
 <p>这里的 <strong>版本</strong>，可以理解为：当前项目中的 <strong>所有文件的副本</strong> 的集合。比如：</p>
