@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://afantasy.ninja/"/>
-  <updated>2018-07-21T18:14:35.000Z</updated>
+  <updated>2019-09-01T14:11:03.460Z</updated>
   <id>http://afantasy.ninja/</id>
   
   <author>
@@ -14,6 +14,373 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title></title>
+    <link href="http://afantasy.ninja/2019/06/08/brief-talk-about-git-data/"/>
+    <id>http://afantasy.ninja/2019/06/08/brief-talk-about-git-data/</id>
+    <published>2019-06-08T09:59:46.875Z</published>
+    <updated>2019-09-01T14:11:03.460Z</updated>
+    
+    <content type="html"><![CDATA[<h1 id="浅析-git-数据管理"><a href="#浅析-git-数据管理" class="headerlink" title="浅析 git 数据管理"></a>浅析 git 数据管理</h1><p>两个月前，团队来了个新的实习生。我们让他协助开发一个 Java 服务。第二天发生了一个鬼故事：</p>
+<blockquote>
+<p><em>实习生花了1个小时来下载 git 工作仓库</em></p>
+</blockquote>
+<p>好不容易下载到本地，可见的代码本身只有几十 M 的大小，但在命令行中查看仓库时，发现在 <code>.git</code> 目录中有一个名为 <code>xxxx.pack</code> 的文件，大小竟然有 1.6G。</p>
+<p>这时我和实习生都懵逼了：</p>
+<blockquote>
+<p>为什么这个文件会这么大？这个文件是干嘛的？</p>
+</blockquote>
+<p>我突然发现，自己每天都在使用的 git，其实背后隐藏了大量自己不了解的细节。这篇文章的出发点，就是对其中自己不求甚解的部分，做一个充分的解读。</p>
+<h2 id="Pre-requisite"><a href="#Pre-requisite" class="headerlink" title="Pre-requisite"></a>Pre-requisite</h2><p>为了便于理解，在阅读这篇文章前，你需要对 git 有基本的使用经验。如果没有的话，可以先从廖雪峰的 <a href="https://www.liaoxuefeng.com/wiki/896043488029600" target="_blank" rel="noopener">git 教程</a> 开始。</p>
+<p>读者也可以看下 <a href="https://marklodato.github.io/visual-git-guide/index-zh-cn.html" target="_blank" rel="noopener">图解 git</a>，可以对 git 基本操作有更直观的认识。</p>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li>版本控制的本质</li>
+<li>git 文件管理<ul>
+<li>三个文件区域</li>
+<li>文件的四种状态</li>
+<li>git 数据库</li>
+</ul>
+</li>
+<li>分支的秘密<ul>
+<li>从分叉到分支</li>
+<li>HEAD</li>
+<li>ref, refs! {WIP}</li>
+<li>分支的合并</li>
+</ul>
+</li>
+<li>回到 .pack 文件 – git 优化</li>
+</ul>
+<h2 id="版本控制的本质"><a href="#版本控制的本质" class="headerlink" title="版本控制的本质"></a>版本控制的本质</h2><p>想象一下，我们正在开发一个项目：没有 git，没有 SVN，没有任何可用工具。<strong>我们如何保证：可以保留这个项目不同的版本，当某一个版本出了问题时，可以回到上一个版本呢？</strong></p>
+<p>这里的 <strong>版本</strong>，可以理解为：当前项目中的 <strong>所有文件的副本</strong> 的集合。比如：</p>
+<blockquote>
+<ol>
+<li>今天早上10点，某同事 A 向项目中添加了 <code>list.js</code>，加了10行代码</li>
+<li>下午3点，某同事 A 发现 <code>list.js</code> 里有 bug，于是修改了其中的3行代码</li>
+<li>晚上8点，某同事 B 添加了一个新功能，又给 <code>list.js</code> 增加了20行代码</li>
+</ol>
+</blockquote>
+<p>以上的每一个操作之后，我们都得到了1个关于 <code>list.js</code> 在这个仓库中的副本。所谓版本控制，无非就是控制某个文件夹中所有的文件（包括嵌套文件夹里的文件）的副本，并允许我们随意地调用这些副本的数据。</p>
+<p>所以回到没有版本控制工具的时候，最简单的方法当然是：<code>Ctrl-C</code> + <code>Ctrl-V</code> —— 当我们需要保留其中一个「版本」时，我们可以先将整个项目文件夹的代码，复制出来，然后取个名字 <em>v1</em>，甚至再压缩打包一下变成 <em>v1.zip</em>，然后存起来。这样不断重复，对每一个值得保存的修改，我们都给它执行这样的操作，得到 <em>v2, v3, v4, …</em></p>
+<p>这样，当我们发布了一个新版本时，如果它有问题，我们可以很快的恢复到上一个版本；每个文件在每个版本的副本，都被保留下来了。</p>
+<p><strong>这当然是一种有效的做法，但它确实又是一个低效的做法：</strong></p>
+<ul>
+<li>道理上来说，我们只要保存每个新的「版本」中被修改过的文件就行了，不需要所有的文件都复制一遍</li>
+<li>复制粘贴重命名的操作，重复繁琐，且容易出错（万一搞错版本号，那就糟糕了）</li>
+<li>如果有多个人一起工作怎么办呢？怎么约定所谓的「版本号」呢？</li>
+<li>如果两个人都希望发布一个新版本，但两个人修改的代码是同一个位置又怎么办呢？</li>
+<li>…</li>
+</ul>
+<p>带着这些问题，我们来审视一个版本控制工具，它必须要能够解决以下几个问题：</p>
+<ol>
+<li>它可以在每个版本中 “保存” 每个文件的副本（特别是，修改过的文件）</li>
+<li>它可以保证「版本号」的唯一性</li>
+<li>当有多个人一起协作时，它可以通过某些规则，解决不同人对同一个文件的修改的合并问题</li>
+<li>…</li>
+</ol>
+<p>接下来我们将看看 git 是如何分别解决这些问题的。</p>
+<h2 id="git-文件管理"><a href="#git-文件管理" class="headerlink" title="git 文件管理"></a>git 文件管理</h2><p>在详细介绍 git 文件管理之前，希望大家可以把一句话先牢牢记下来：</p>
+<blockquote>
+<p><em>git 保存的不是文件的变化或者差异，而是一系列不同时刻的文件快照</em><br><br><br><em>git 保存的不是文件的变化或者差异，而是一系列不同时刻的文件快照</em><br><br><br><em>git 保存的不是文件的变化或者差异，而是一系列不同时刻的文件快照</em></p>
+</blockquote>
+<p>当我们在 git 仓库中提交更新，或者保存项目状态时，git 会对当时的全部文件制作副本（也可以称为“快照”），并为每份快照都提供一个独立的索引。如果有些文件没有被更新，那么 git 不会对其生成新的副本，而是在提交记录中保留指向之前存储的文件的链接。</p>
+<h3 id="三个文件区域"><a href="#三个文件区域" class="headerlink" title="三个文件区域"></a>三个文件区域</h3><p>git 项目中有三个文件区域的概念：</p>
+<ul>
+<li>首先，git 会将所有的代码副本和项目元数据（提交历史，目录结构），都存放在一个 <code>.git</code> 的目录中。我们称这个目录为「版本库」；</li>
+<li>此外，当前的工作目录，直接可见的部分，我们称为「工作区」；</li>
+<li>最后，为了方便记录我们对文件的修改，git 还提供了一个「暂存区」（<code>staging area</code>），临时寄放我们新增的或者修改过的文件，相当于一个等候区。</li>
+</ul>
+<p>一般我们会在「工作区」中新增或者修改某些文件，然后执行 <code>git add</code> —— 这时被添加的文件的快照将被放入到「暂存区」，直到我们通过 <code>commit</code> 指令提交这些变更，永久地存入到「版本库」中。</p>
+<p>如果我们希望可以在「工作区」中查看某个版本的数据，我们可以通过 <code>checkout</code> 指令，从「版本库」中调档，把某个版本的数据调取出来。</p>
+<p><img src="https://git-scm.com/book/en/v2/images/areas.png" alt=""></p>
+<h3 id="文件的四种状态"><a href="#文件的四种状态" class="headerlink" title="文件的四种状态"></a>文件的四种状态</h3><p>虽然 git 有三个文件区域，但实际上在项目中的文件，理论上可以有4种不同状态：</p>
+<ul>
+<li><code>untracked</code> - git 还没有「跟踪」该文件</li>
+<li><code>unmodified</code> - 当前文件和最近提交记录的文件的状态，是完全一致的</li>
+<li><code>modified</code> - 当前文件和最近提交记录的文件相比，做了一定的修改</li>
+<li><code>staged</code> - 文件做了修改，且这些修改被暂存起来了。</li>
+</ul>
+<p>每个状态以及更改文件状态的 git 操作，如下图所示。</p>
+<p><img src="https://git-scm.com/book/en/v2/images/lifecycle.png" alt=""></p>
+<p>注：对于某些我们不希望 git 去管的文件，我们可以在它位于 <code>untracked</code> 状态时，通过 <code>.gitignore</code> 中的规则，让 git 忽略它们的存在。</p>
+<p>这基本是绝大部分 git 教程会告诉我们的东西。但这里请大家思考两个问题：</p>
+<ol>
+<li><strong>git 通过什么判断我的某个文件是否为 <code>untracked</code> ？所谓「跟踪」又是什么意思呢？</strong></li>
+<li><strong>说 <code>.git</code> 目录代表了 git 的「版本库」，那具体的代码副本是如何存放的呢？</strong></li>
+</ol>
+<p>这就要从 git 的核心：git 数据库说起。</p>
+<h3 id="git-数据库"><a href="#git-数据库" class="headerlink" title="git 数据库"></a>git 数据库</h3><p><strong>git 的核心部分是一个简单的 key-value 数据库：</strong> </p>
+<ol>
+<li>你可以向数据库插入任意类型的内容，它会返回一个键值，通过键值可以在任意时刻再次查询该内容。</li>
+<li>这些数据都是存储在 <code>.git/objects</code> 目录里的，以文件的形式存放。</li>
+<li><code>key</code> 的值是一个 <em>40位的 SHA-1 hash</em>，hash 的前2个字符用于命名子目录，余下的38个字符用作文件名</li>
+</ol>
+<p>在 git 数据库中，有4种不同类型的对象：</p>
+<ul>
+<li>blob - 记录单个文件的数据</li>
+<li>tree - 对应记录文件夹节点的数据</li>
+<li>commit - 记录一次提交记录</li>
+<li>tag - 记录一个 tag</li>
+</ul>
+<p>我们在下一节会提到它们的具体形态和数据结构，但目前我们先不纠结这个，只需要知道有这几样东西就可以了。</p>
+<p>让我们通过一个实际的例子，进行日常的 git 操作，然后查看 git 的原始数据存放情况。</p>
+<h4 id="举一个栗子"><a href="#举一个栗子" class="headerlink" title="举一个栗子"></a>举一个栗子</h4><p>首先我们创建一个空的文件夹，作为我们的项目地址，并用 <code>git init</code> 将它初始化：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$ mkdir git-demo</div><div class="line">$ <span class="built_in">cd</span> git-demo</div><div class="line">$ git init   <span class="comment"># 这就创建好了</span></div></pre></td></tr></table></figure>
+<p>目前项目空空如也。但实际上 git 仓库已经就绪，我们可以看下 <code>.git</code> 目录：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line">$ tree .git  <span class="comment">### 以下是输出结果</span></div><div class="line">.git</div><div class="line">├── HEAD</div><div class="line">├── config</div><div class="line">├── description</div><div class="line">├── hooks</div><div class="line">│   ├── applypatch-msg.sample</div><div class="line">│   ├── commit-msg.sample</div><div class="line">│   ├── post-update.sample</div><div class="line">│   ├── pre-applypatch.sample</div><div class="line">│   ├── pre-commit.sample</div><div class="line">│   ├── pre-push.sample</div><div class="line">│   ├── pre-rebase.sample</div><div class="line">│   ├── pre-receive.sample</div><div class="line">│   ├── prepare-commit-msg.sample</div><div class="line">│   └── update.sample</div><div class="line">├── info</div><div class="line">│   └── exclude</div><div class="line">├── objects</div><div class="line">│   ├── info</div><div class="line">│   └── pack</div><div class="line">└── refs</div><div class="line">    ├── heads</div><div class="line">    └── tags</div><div class="line"></div><div class="line">8 directories, 14 files</div></pre></td></tr></table></figure>
+<p>这里我们先抛开别的文件，只看 <code>objects</code> 目录。不难看出，它现在只有 <code>info</code> 和 <code>pack</code> 两个文件（我们稍后再提到他们）</p>
+<p>我们尝试给文件夹里添加点东西：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$ mkdir src</div><div class="line">$ touch Readme.md src/index.js</div><div class="line">$ <span class="built_in">echo</span> <span class="string">'this is some readme text huh'</span> &gt; Readme.md</div></pre></td></tr></table></figure>
+<p>然后我们再查看 <code>.git/objects</code>：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">$ tree .git/objects</div><div class="line">.git/objects/</div><div class="line">├── info</div><div class="line">└── pack</div><div class="line"></div><div class="line">2 directories, 0 files</div></pre></td></tr></table></figure>
+<p>呵…并没有任何变化。那如果我们把其中一个文件放到「暂存区」呢：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">$ git add Readme.md</div><div class="line">$ tree .git/objects</div><div class="line">.git/objects/</div><div class="line">├── ed</div><div class="line">│   └── afe27e250ef26f694b25afce81bdaf96f44eb0</div><div class="line">├── info</div><div class="line">└── pack</div><div class="line"></div><div class="line">3 directories, 1 file</div></pre></td></tr></table></figure>
+<p>哦豁 —— 在 <code>.git/objects</code> 下多了一个文件夹 <code>ed</code>，文件夹下又带有一个名为 <code>afe27e250ef26f694b25afce81bdaf96f44eb0</code> 的文件，串在一起 <code>edafe27e250ef26f694b25afce81bdaf96f44eb0</code> 刚好是40个字符，这就是 git 对这个文件生成的 SHA-1 hash。</p>
+<p>我们可以用 <code>git cat-file</code> 来瞧瞧这个文件：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">$ git cat-file -p edafe27e250ef26f694b25afce81bdaf96f44eb0 <span class="comment"># -p 输出 git 对象的内容</span></div><div class="line">this is some readme text huh</div><div class="line"></div><div class="line">$ git cat-file -t edafe27e250ef26f694b25afce81bdaf96f44eb0 <span class="comment"># -t 输出 git 对象的类型</span></div><div class="line">blob</div></pre></td></tr></table></figure>
+<p>所以在我们添加一个文件到「暂存区」时，git 会对应地创建一个 <code>blob</code> 类型的对象（文件），且这个文件的路径是由一个 40 位的 SHA-1 hash 指定的。</p>
+<p>接下来我们提交这个位于「暂存区」的文件：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">$ git commit -m <span class="string">'add readme'</span></div><div class="line">[master (root-commit) 4245348] add readme</div><div class="line"> 1 file changed, 1 insertion(+)</div><div class="line"> create mode 100644 Readme.md</div><div class="line"></div><div class="line">$ tree .git/objects</div><div class="line">.git/objects</div><div class="line">├── 12</div><div class="line">│   └── 0c03e073cdf409403224c406fdfb022a63e750</div><div class="line">├── 49</div><div class="line">│   └── 0e706c59461270e6f3c0d47356ac84e8c0bc1b</div><div class="line">├── ed</div><div class="line">│   └── afe27e250ef26f694b25afce81bdaf96f44eb0</div><div class="line">├── info</div><div class="line">└── pack</div><div class="line"></div><div class="line">5 directories, 3 files</div></pre></td></tr></table></figure>
+<p>这次提交后，我们发现，除了原本的 <code>edafe...</code> 外，<code>objects</code> 里面又多了两个文件：<code>49/0e7...</code> 和 <code>12/0c0...</code>；同样我们可以分别查看这两个文件：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">$ git cat-file -t 120c03e073cdf409403224c406fdfb022a63e750</div><div class="line">commit</div><div class="line"></div><div class="line">$ git cat-file -p 120c03e073cdf409403224c406fdfb022a63e750 </div><div class="line">tree 490e706c59461270e6f3c0d47356ac84e8c0bc1b</div><div class="line">author Zeqiu Wu &lt;allenwu1018@gmail.com&gt; 1567341827 +0800</div><div class="line">committer Zeqiu Wu &lt;allenwu1018@gmail.com&gt; 1567341827 +0800</div><div class="line"></div><div class="line">add readme</div></pre></td></tr></table></figure>
+<p>不难看出，这第一个文件对应的是一个 <code>commit</code> 类型的对象；对象中的数据记录了这个 commit 的作者和提交者，还有 commit msg；此外，还包含了一行记录：<code>tree 490e706c59461270e6f3c0d47356ac84e8c0bc1b</code>，这里的 SHA-1 hash 恰好是另一个文件的 SHA-1 hash：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">$ git cat-file -t 490e706c59461270e6f3c0d47356ac84e8c0bc1b</div><div class="line">tree</div><div class="line"></div><div class="line">$ git cat-file -p 490e706c59461270e6f3c0d47356ac84e8c0bc1b</div><div class="line">100644 blob edafe27e250ef26f694b25afce81bdaf96f44eb0	Readme.md</div></pre></td></tr></table></figure>
+<p>而第二个文件则是一个 <code>tree</code> 类型的对象。它的内容包含了 <code>Readme.md</code> 这个文件的名称，对应的 git blob 对象的 SHA-1 hash 和文件模式（100644）。</p>
+<p>这时我们的几个 git 对象之间的关系是这样的：</p>
+<p><img src="../images/commit-1.png" alt=""></p>
+<p>随后我们在 <code>src/index.js</code> 中编写一段代码，并提交：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// index.js</span></div><div class="line"><span class="built_in">console</span>.log(<span class="string">'this is index.js'</span>)</div><div class="line"><span class="comment">// TODO</span></div></pre></td></tr></table></figure>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ git add src/index.js</div><div class="line">$ git commit -m <span class="string">'init project index'</span></div></pre></td></tr></table></figure>
+<p>这时候我们再看 <code>.git/objects</code>：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">$ tree .git/objects</div><div class="line">.git/objects</div><div class="line">├── 12</div><div class="line">│   └── 0c03e073cdf409403224c406fdfb022a63e750</div><div class="line">├── 49</div><div class="line">│   └── 0e706c59461270e6f3c0d47356ac84e8c0bc1b</div><div class="line">├── 8f</div><div class="line">│   └── d15dbfbba5fd5b981de38f5177c8029693f4fb</div><div class="line">├── bd</div><div class="line">│   └── acba00da0ef745a2bdfdee7844ecc97db19cb0</div><div class="line">├── e0</div><div class="line">│   └── 5e71a0142e288df830343f06c2e9549511b159</div><div class="line">├── ed</div><div class="line">│   └── afe27e250ef26f694b25afce81bdaf96f44eb0</div><div class="line">├── ff</div><div class="line">│   └── cee3ab51c6a5903bc8a9ca9378a5672e44ea36</div><div class="line">├── info</div><div class="line">└── pack</div><div class="line"></div><div class="line">9 directories, 7 files</div></pre></td></tr></table></figure>
+<p>唔，有点多哈。我们先排除掉上一次提交中涉及的3个 git 对象：<code>120c0...</code>, <code>490e7...</code> 和 <code>edafe...</code>。那么我们就还有4个对象。逐一分析可以得到：</p>
+<ul>
+<li><code>8fd15...</code> - <code>commit</code> 对象，内容为：<ul>
+<li><strong>tree</strong> <code>e05e7...</code></li>
+<li><strong>parent</strong> <code>120c0...</code></li>
+<li><strong>author</strong> <code>Zeqiu Wu</code></li>
+<li><strong>committer</strong> <code>Zeqiu Wu</code></li>
+<li><strong>commit 信息</strong> <code>init project index</code></li>
+</ul>
+</li>
+<li><code>bdacb...</code> - <code>blob</code> 对象，内容为刚才我们写入的三行 JS 脚本</li>
+<li><code>e05e7...</code> - <code>tree</code> 对象，内容为：<ul>
+<li><code>100644</code> <code>blob</code> <code>edafe...</code> <code>Readme.md</code></li>
+<li><code>040000</code> <code>tree</code> <code>ffcee...</code> <code>src</code></li>
+</ul>
+</li>
+<li><code>ffcee...</code> - <code>tree</code> 对象，内容为：<ul>
+<li><code>100644</code> <code>blob</code> <code>bdacb...</code> <code>index.js</code></li>
+</ul>
+</li>
+</ul>
+<p>用图来表示会更直观一些：</p>
+<p><img src="../images/commit-2.jpg" alt=""></p>
+<p>第二个 commit 的图中，包含了很多信息。</p>
+<p>首先，相比于上一个图，不难留意到 <code>490e7...</code> 这个 tree 对象的内容中，除了包含对 blob 对象的引用外，还包含对另一个 tree 对象的引用：<code>ffcee...</code>，且引用中注明了 <code>src</code> 这个文件夹名称。</p>
+<p>从概念上讲，从项目顶层目录开始，git 储存的实际数据结构有点像这样：</p>
+<p><img src="https://git-scm.com/book/en/v2/images/data-model-1.png" alt=""></p>
+<p>在最顶端总会有一个 <code>tree</code> 对象；如顶层目录下还有别的文件夹，则就文件夹本身会有一个额外的 <code>tree</code> 对象记录。</p>
+<p>另外，在上一个 commit 中出现的 <code>Readme.md</code> 仍然出现在图中，只是这次是一个名为 <code>490e7...</code> 的 tree 对象记录了 <code>Readme.md</code> 的 blob 对象的 hash。</p>
+<p>此外，还需要注意的是 <code>a1a6b...</code> 这个 commit 对象，除了包含 tree 引用，提交者信息和 commit 日志外，还附带了一个 <code>parent</code> 信息，正好是上一个 commit 的 SHA-1 hash <code>56319...</code></p>
+<p>如果我们将 <code>.git/objects</code> 里所有的对象都放到一个图中，就会是这样的：</p>
+<p><img src="../images/all-git-objects.jpg" alt=""></p>
+<p>其中的对象间的关系，大家可以尝试自己体会 :p</p>
+<h3 id="git-对象小结"><a href="#git-对象小结" class="headerlink" title="git 对象小结"></a>git 对象小结</h3><p>从上一节的例子中，我们可以得到一些基本的结论：</p>
+<ul>
+<li>git 通过在「版本库」（即 <code>.git/objects</code>）中创建一个路径唯一的文件来记录（或者叫”跟踪“）一个 git 对象。这个文件的路径由一个长度为 40 的 SHA-1 hash 分拆组成。</li>
+<li>我们知道有三种 git 对象：blob, tree, commit（有兴趣的读者可以自行研究 tag 对象）</li>
+<li>blob 对象对应某个文件在某个时间点上的内容。</li>
+<li>commit 和 tree 对象的数据中会包含对 tree 或 blob 对象的指针</li>
+<li>tree 对象可以视作代表 “文件夹” —— tree 对象的指向关系，本质上就是对应文件夹关系的一颗树</li>
+<li><p>从第二个开始的所有 commit 对象，都会包含指向其上一个 commit 的指针</p>
+<p><img src="https://git-scm.com/book/en/v2/images/commits-and-parents.png" alt=""></p>
+</li>
+</ul>
+<h2 id="分支的秘密"><a href="#分支的秘密" class="headerlink" title="分支的秘密"></a>分支的秘密</h2><p>基于 git 的对象理论，我们来尝试剖析 git 分支的具体形态，以及对分支的各种操作。</p>
+<h3 id="从分叉到分支"><a href="#从分叉到分支" class="headerlink" title="从分叉到分支"></a>从分叉到分支</h3><p>从上一节中，我们知道除了第一个 commit 外，每个 commit 都会包含对上一个的指针。那么假如某个 git 项目一直只有一个人在开发，那么这个 git 项目的 commit 记录就会组成1条简单的直线。</p>
+<p>但如果是两个人在开发，必然会出现并行工作的情况（总不能 A 先眼巴巴等着 B 开发完再开发吧），在提交历史上我们就会出现分叉。</p>
+<p>git 提供了「分支」的概念来支持用户进行分叉操作。<strong>git 的分支本质上只是指向 commit 对象的可变指针</strong>，让我们来详细说明这一点：</p>
+<p>在我们新建一个仓库并完成提交（或者从远程同步一个仓库到本地）时，都会发现当前已经存在一个叫做 <code>master</code> 的分支。这是因为 git 默认会创建一个名为 <code>master</code> 的指针，并指向最近一次的 commit 对象。在每次 commit 后，<code>master</code> 指针会跟着移动，指向新生成的 commit 对象。这时候的状态如下图：</p>
+<p><img src="../images/branch-1.jpg" alt=""></p>
+<p>我们可以创建一个新的分支：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ git branch testing <span class="comment"># 在当前提交对象上创建一个新的指针</span></div></pre></td></tr></table></figure>
+<blockquote>
+<p>注：git branch 操作中，git 实际上会运行一个 update-ref 指令，有兴趣的同学可以进一步研究。</p>
+</blockquote>
+<p>于是我们得到这样一个状态：</p>
+<p><img src="https://git-scm.com/book/en/v2/images/two-branches.png" alt=""></p>
+<p>这里的 <code>master</code> 和 <code>testing</code> 都指向了同一个 commit 对象，且本质上这两个分支（指针）是平等的（<code>master</code> 只不过是 git 默认分支的名字）。问题来了，如果接下来我们要做一个新的提交，是两个分支都跟着移动么？还是只有 <code>master</code>？什么时候 <code>testing</code> 会跟着往前走呢？</p>
+<p>这就取决于：<strong>当前我们使用哪一个指针</strong>，或者说：<strong>当前我们在哪个分支上</strong></p>
+<p>那接下来的问题就是：git 如何知道当前在哪一个分支上呢？</p>
+<h3 id="HEAD"><a href="#HEAD" class="headerlink" title="HEAD"></a>HEAD</h3><p>答案是 git 使用了名为 <code>HEAD</code> 的特殊指针。git 仓库的 <strong>当前文件</strong> 的状态，总是对应 <code>HEAD</code> 指针所指向的提交对象对应的快照。</p>
+<p><img src="https://git-scm.com/book/en/v2/images/head-to-master.png" alt=""></p>
+<p>通过 <code>git status</code> 我们可以看到当前我们还是在 <code>master</code> 分支上（尽管我们已经创建了 <code>testing</code> 分支），然后我们可以查看下各个分支指向的对象，这和上面的图例结果是吻合的：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">$ git <span class="built_in">log</span> --oneline --decorate</div><div class="line">f30ab (HEAD, master, testing) add feature <span class="comment">#32 - ability to add new</span></div><div class="line">34ac2 fixed bug <span class="comment">#1328 - stack overflow under certain conditions</span></div><div class="line">98ca9 initial commit of my project</div></pre></td></tr></table></figure>
+<p>我们可以通过 <code>checkout</code> 指令让 <code>HEAD</code> 指针从指向 <code>master</code> 改成指向 <code>testing</code>：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ git checkout testing</div><div class="line">Switched to branch <span class="string">'testing'</span></div></pre></td></tr></table></figure>
+<p>这时 <code>HEAD</code> 指向 <code>testing</code> 分支。</p>
+<p><img src="https://git-scm.com/book/en/v2/images/head-to-testing.png" alt=""></p>
+<blockquote>
+<p>注意, 这里不要和 SVN 的 checkout 搞混了, 它们完全不同</p>
+</blockquote>
+<p>这时如果我们再做一个新的 commit，则 <code>testing</code> 分支（指针）将跟着往前，指向新的 commit，同时 <code>HEAD</code> 也会自觉地跟着新的 commit：</p>
+<p><img src="https://git-scm.com/book/en/v2/images/advance-testing.png" alt=""></p>
+<p>然后我们可以再让 <code>HEAD</code> 指向 <code>master</code>：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ git checkout master</div><div class="line">Switched to branch <span class="string">'master'</span></div></pre></td></tr></table></figure>
+<p><img src="https://git-scm.com/book/en/v2/images/checkout-master.png" alt=""></p>
+<p>最后我们又做一个 commit，让分叉出现，哦豁！</p>
+<p><img src="https://git-scm.com/book/en/v2/images/advance-master.png" alt=""></p>
+<h3 id="refs-refs"><a href="#refs-refs" class="headerlink" title="refs, refs!"></a>refs, refs!</h3><p>我们现在知道 HEAD 是一个指向当前分支（即一系列 commit 链条上的最后一个）的指针，也知道 <code>master</code> 和 <code>testing</code> 也是指向最后一个 commit 的指针。那它们具体的存在形式是怎样的呢？</p>
+<p>我们先从 HEAD 开始研究。让我们再看一次 <code>.git</code> 文件夹的结构：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">.git</div><div class="line">├── HEAD</div><div class="line">├── config</div><div class="line">├── description</div><div class="line">├── hooks (若干个 git hook 文件, 此处省略)</div><div class="line">├── info (暂时省略)</div><div class="line">├── objects (git 原始对象存放地点, 省略)</div><div class="line">└── refs</div><div class="line">    ├── heads</div><div class="line">    └── tags</div></pre></td></tr></table></figure>
+<p>我们留意到恰好有一个名为 HEAD 的文件。查看它的内容：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ cat .git/HEAD</div><div class="line">ref: refs/heads/master</div></pre></td></tr></table></figure>
+<p>我们发现 HEAD 文件中提到了 <code>refs/heads/master</code>。让我们来试下切换分支到 testing，更改 HEAD 的指向：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$ git checkout testing</div><div class="line">$ cat .git/HEAD</div><div class="line">ref: refs/heads/testing</div></pre></td></tr></table></figure>
+<p>观察 <code>refs/heads</code> 目录：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">$ ls .git/refs/head/</div><div class="line">master  testing</div><div class="line"></div><div class="line">$ cat .git/refs/head/master</div><div class="line">a1a6b4ff321bb2c058632a231fce0e56ab2ab3f3</div><div class="line"></div><div class="line">$ cat .git/refs/head/testing</div><div class="line">a1a6b4ff321bb2c058632a231fce0e56ab2ab3f3</div></pre></td></tr></table></figure>
+<p>如果这时我们希望再创建一个新的分支 <code>feat-abc</code>，可以利用上文提及的 <code>git branch</code> 指令。这时候 git 会创建一个新的指针 abc，这个 abc 指向的最后一个 commit 和 testing 一样：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">$ git branch abc</div><div class="line"></div><div class="line">$ ls .git/refs/head</div><div class="line">master  testing  abc</div><div class="line"></div><div class="line">$ cat .git/refs/head/abc <span class="comment"># 注意观察输出的 SHA-1 值, 和上一段例子中 refs/head/testing 一样</span></div><div class="line">a1a6b4ff321bb2c058632a231fce0e56ab2ab3f3</div><div class="line"></div><div class="line">$ git checkout abc <span class="comment"># 切换当前分支到 abc, 即让 HEAD 的值为 refs/head/abc</span></div></pre></td></tr></table></figure>
+<p>如果这时候我们再完成一个新的 commit，则当前的分支应用 abc 所指向的 commit 的值自然会发生改变。这就是我们日常开发中的过程了。</p>
+<p>可以发现：<code>.git/refs/head</code> 下存放的文件，就是对应着各个现有的分支；且这些文件的内容就是其指向的 commit 的 SHA-1 hash 值。</p>
+<p><strong>像 HEAD 和 refs/head/abc 这样的文件，在 git 中可以统称为引用（references, 或缩写为 refs）</strong></p>
+<p>引用可以分为几种：HEAD 引用，分支引用，标签引用（tag reference）和远程引用。这里我们不对标签引用做过多的解释（有兴趣的同学可以自行查阅资料），仅对其他几种进行讨论。</p>
+<h4 id="HEAD-引用"><a href="#HEAD-引用" class="headerlink" title="HEAD 引用"></a>HEAD 引用</h4><p>在上文例子中提到的 <code>.git/HEAD</code> 就是 HEAD 引用。它是一个符号引用（symbolic reference），指向目前所在的分支。</p>
+<p>所谓符号引用是指它本身不包含一个 SHA-1 hash，而是指向了其他的分支引用。如之前的例子所示，如果执行 <code>git checkout testing</code>，git 会将 HEAD 的值设为 <code>ref: refs/heads/testing</code></p>
+<blockquote>
+<p>注：其实 HEAD 也不是必须指向别的引用，它也是可以像普通引用一样包含一个具体的 commit SHA-1 hash，这样的 HEAD 被称为 detached HEAD</p>
+<p>注2：checkout 指令底层所依赖的命令为 symbolic-ref，有兴趣的同学也可以进一步研究。</p>
+</blockquote>
+<h4 id="分支引用"><a href="#分支引用" class="headerlink" title="分支引用"></a>分支引用</h4><p>在上文例子中提到的 <code>.git/refs/xxx</code> 就是所谓的「分支引用」，它们的主要作用是让我们能够用可理解的代号，来指向某一个特殊的 commit，且允许我们在这个 commit 的基础上进行新的开发（提交 commit）</p>
+<h4 id="远程引用"><a href="#远程引用" class="headerlink" title="远程引用"></a>远程引用</h4><p>在开发中我们经常做的第一件事情，就是从某个可访问的地址获取某个项目的已有代码，这个可访问的地址被称为远程仓库。「远程引用」正是指向远程仓库某个分支的引用。</p>
+<p>「远程引用」是只读的，它帮助我们记录已知的远程仓库上，各个分支和标签的状态。当然，如果实际上远程仓库发生了变化，本地的「远程引用」不会自动地跟踪；同样，本地也不可以直接修改「远程应用」所指向的分支。当我们做任何网络通信操作时，它会自动移动。它就像是你上次连接到远程仓库时，那些分支所处状态的书签。我们称「远程引用」所指向的远程仓库中的分支为「远程跟踪分支」。</p>
+<p>我们可以通过 <code>git ls-remote (remote)</code> 或者 <code>git ls -r</code> 来显式获取远程引用的完整列表，也可以直接查看 <code>refs/remotes</code> 下的文件，比如：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">$ ls .git/refs/remotes <span class="comment"># 列举所有已知的远程仓库 </span></div><div class="line">origin</div><div class="line">$ ls .git/refs/remotes/origin <span class="comment"># 列举 origin 下已知的引用(分支)</span></div><div class="line">master feat-abc</div><div class="line">$ cat .git/refs/remotes/origin/master <span class="comment"># 查看远程仓库 origin 下 master 分支指向的 commit</span></div><div class="line">....</div></pre></td></tr></table></figure>
+<p>由于 git 本地不会自动跟踪远程仓库的任何变化，所以我们需要显式地更新远程仓库的状态。我们可以通过 <code>git fetch</code> 来更新远程仓库上各个分支的最新状态。这里本质上是将远程仓库上各个分支的最新代码变更拉取到本地。</p>
+<p>由于它实际上确实是一个本地可访问的分支，所以我们也可以将它合并到本地的某个分支上，比如当前我们位于 <code>master</code> 分支，希望将名为 origin 的远程仓库上最新的 master 分支 合并进来；那么我们可以：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$ git checkout master       <span class="comment"># 切换到 master 分支</span></div><div class="line">$ git fetch origin          <span class="comment"># 更新 origin 下的所有分支</span></div><div class="line">$ git merge origin/master   <span class="comment"># 合并操作</span></div></pre></td></tr></table></figure>
+<p>更简单的方法是：我们在 <code>master</code> 分支上直接执行 <code>git pull origin master</code>，git 会自动识别去哪个服务器上抓取合并：<code>git pull origin master</code> =&gt; <code>git fetch origin</code> + <code>git merge origin/master</code></p>
+<p>因为这样的操作非常高频，所以 git 允许我们创建所谓的 <strong>跟踪分支（tracking-branch）</strong> 来简化同步代码的操作：我们只需要从一个「远程跟踪分支」中 checkout 出一个新的分支，git 就会认为这个新的分支 “跟踪” 了远程仓库中对应的分支：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">$ git checkout origin/abc</div><div class="line">$ git checkout -b abc</div><div class="line"><span class="comment">## 或者可以这样</span></div><div class="line">$ git checkout --track origin/abc <span class="comment"># 在本地创建一个同名的 abc 分支, 作为 "跟踪分支"</span></div></pre></td></tr></table></figure>
+<p>在「跟踪分支」上，我们可以直接用 <code>git pull</code> 而不需要指定对应的远程仓库和分支名称；像大家常见的 <code>git clone</code> 操作，实际上就会将 <code>master</code> 分支设置为 <code>origin/master</code> 分支的「跟踪分支」。</p>
+<p>刚才我们简单提到了分支间的 merge 操作，接下来我们来详细分析 git 分支间的合并操作。</p>
+<h3 id="分支的合并"><a href="#分支的合并" class="headerlink" title="分支的合并"></a>分支的合并</h3><p>在真实的开发中，我们使用分支，是为了可以将新功能或者模块的开发，拆分到一个独立的环境中，这样我们可以不断地 commit 保存一些过程中的小功能点，而不需要担心这些 commit 会影响到整个系统可用的部分（通常来说，指 master）</p>
+<p>让我们来看下这个图：</p>
+<p><img src="https://git-scm.com/book/en/v2/images/basic-branching-4.png" alt=""></p>
+<p>我们可以想象有这样的事情：</p>
+<ul>
+<li>我们准备开发一个新功能，从 <code>master</code> 分支上建立了一个分支 <code>iss53</code>，并让 HEAD 指向这个分支（其实就是 <code>checkout</code>）</li>
+<li>然后我们在 <code>iss53</code> 上做了一个 commit <code>C3</code></li>
+<li>随后老板 <del>（很生气地）</del> 告诉我们，线上有一个 bug，要尽快修复它；于是我们切换回 <code>master</code> 分支，然后在 <code>master</code> 分支上重新建立一个叫做 <code>hotfix</code> 的分支，然后在上面做了一个 <code>C4</code> 的 commit，应该可以修复这个紧急问题。</li>
+</ul>
+<p>好了，接下来该干嘛？—— 我们应该想办法把 <code>hotfix</code> 上的内容合并到原来的 <code>master</code> 分支上。</p>
+<p>这时我们就可以用上 <code>git merge</code> 这个功能了：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">$ git checkout master <span class="comment"># 让 HEAD 指向 master</span></div><div class="line">$ git merge hotfix    <span class="comment"># 将 hotfix 的内容合并到 master 分支上</span></div><div class="line">Updating f42c576..3a0874c</div><div class="line">Fast-forward</div><div class="line"> index.html | 2 ++</div><div class="line"> 1 file changed, 2 insertions(+)</div></pre></td></tr></table></figure>
+<p>这样的合并属于「快进」（fast-forward）—— 由于 <code>master</code> 分支指向的提交是当前 <code>hotfix</code> 的提交的直接上游，所以 git 只是简单的将 <code>master</code> 的指针向前移动。</p>
+<blockquote>
+<p>换句话说，当你试图合并两个分支时，如果顺着一个分支走下去能够到达另一个分支，那么 git 在合并两者的时候，只会简单的将指针向前推进（指针右移），因为这种情况下的合并操作没有需要解决的分歧——这就叫做「快进」（fast-forward）。</p>
+</blockquote>
+<p>完成合并后，我们可以发布这个修复，然后可以回去继续开发新功能了；这时候 <code>master</code> 和 <code>hotfix</code> 都指向同一个 commit 对象。而 <code>iss53</code> 并没有变化。</p>
+<p><img src="https://git-scm.com/book/en/v2/images/basic-branching-5.png" alt=""></p>
+<p>我们可以清理掉不需要的 <code>hotfix</code> 分支，然后继续干活：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">$ git branch <span class="_">-d</span> hotfix <span class="comment"># 删除分支</span></div><div class="line">Deleted branch hotfix (3a0874c).</div><div class="line"></div><div class="line">$ git checkout iss53</div><div class="line">Switched to branch <span class="string">"iss53"</span></div><div class="line"></div><div class="line"><span class="comment"># ... do some work</span></div><div class="line">$ git commit <span class="_">-a</span> <span class="string">'finished issue 53'</span></div><div class="line">[iss53 ad82d7a] finished issue 53</div><div class="line">1 file changed, 1 insertion(+)</div></pre></td></tr></table></figure>
+<p>这时候分支的情况：</p>
+<p><img src="https://git-scm.com/book/en/v2/images/basic-branching-6.png" alt=""></p>
+<p>开发好了 —— 现在我们需要把 <code>iss53</code> 这个分支合并回 <code>master</code> 分支。但这时两个分支之间产生了分叉。这时 git 会使用两个分支的最近的 commit <code>C4</code> 和 <code>C5</code>，连同两个分支的公共祖先 <code>C2</code> 一起做一个三方合并：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">$ git checkout master</div><div class="line">Switched to branch <span class="string">'master'</span></div><div class="line">$ git merge iss53</div><div class="line">Merge made by the <span class="string">'recursive'</span> strategy.</div><div class="line">index.html |    1 +</div><div class="line">1 file changed, 1 insertion(+)</div></pre></td></tr></table></figure>
+<p>合并结束后，git 会用三方合并的结果创建一个新的 commit 记录下来。这个 commit 被称为 <code>merge commit</code>，它的特别之处在于它有不止一个父 commit：</p>
+<p><img src="https://git-scm.com/book/en/v2/images/basic-merging-2.png" alt=""></p>
+<p>这样工作就结束了，所有的修复，连同功能代码都被加到了 master 里面，是时候下班了~~</p>
+<h4 id="Merge-Conflict"><a href="#Merge-Conflict" class="headerlink" title="Merge Conflict"></a>Merge Conflict</h4><p>但事情并没有这么顺利，在一些情况下，我们会遇到无法处理合并的情况。比如说，假设刚才我们在 <code>iss53</code> 和 <code>hotfix</code> 的修改中，同时涉及了一个文件的同一处，当合并的时候就会产生一个冲突（conflict）：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">$ git merge iss53</div><div class="line">Auto-merging index.html</div><div class="line">CONFLICT (content): Merge conflict <span class="keyword">in</span> index.html</div><div class="line">Automatic merge failed; fix conflicts and <span class="keyword">then</span> commit the result.</div></pre></td></tr></table></figure>
+<blockquote>
+<p>原则上，git 会尽量自动合并两个分支对一个文件的修改。</p>
+</blockquote>
+<p>当产生一个冲突时，git 不会自动生成一个 merge commit，而是会暂停下来，等待你去解决合并产生的冲突。可以用 <code>git status</code> 来查看：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">$ git status</div><div class="line">On branch master</div><div class="line">You have unmerged paths.</div><div class="line">  (fix conflicts and run <span class="string">"git commit"</span>)</div><div class="line"></div><div class="line">Unmerged paths:</div><div class="line">  (use <span class="string">"git add &lt;file&gt;..."</span> to mark resolution)</div><div class="line"></div><div class="line">    both modified:      index.html</div><div class="line"></div><div class="line">no changes added to commit (use <span class="string">"git add"</span> and/or <span class="string">"git commit -a"</span>)</div></pre></td></tr></table></figure>
+<p>这时需要我们手动去解决代码冲突。出现冲突的文件会包含一些特殊区段，类似这样：</p>
+<p><img src="../images/git-merge-conflict-example.jpg" alt=""></p>
+<p>git 将冲突的双方对该文件的修改，都保留在界面上，用 <code>=========</code> 来分割两部分。我们可以根据实际需要，选择其中的某个部分，或者自行合并内容。很多编辑器（如 VSCode）和 IDE（如 WebStorm）对处理冲突提供了很好的支持，也可以选择借助它们来处理。</p>
+<blockquote>
+<p>这里最好的方式是拉上另一个分支的同伴（如果有多人协作的话）一起审查这个 conflict，这样可以避免单方面操作对某部分的代码造成意料之外的伤害。</p>
+</blockquote>
+<p>当解决了所有冲突的文件后，我们可以运行 <code>git status</code> 确认这一事实：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">$ git status</div><div class="line">On branch master</div><div class="line">All conflicts fixed but you are still merging.</div><div class="line">  (use <span class="string">"git commit"</span> to conclude merge)</div><div class="line"></div><div class="line">Changes to be committed:</div><div class="line"></div><div class="line">    modified:   index.html</div></pre></td></tr></table></figure>
+<p>如果没有问题，则可以用 <code>git commit</code> 来完成最终的 merge commit。</p>
+<blockquote>
+<p>另一种情况是：我们发现实在是太难处理了，这时可以直接用 <code>git merge --abort</code> 取消这次合并的尝试 —— 这等于我们从来没有做过合并。然后我们叫一个老司机来协助解决这个问题。</p>
+</blockquote>
+<h2 id="回到-pack-的问题"><a href="#回到-pack-的问题" class="headerlink" title="回到 pack 的问题"></a>回到 pack 的问题</h2><p>说了这么多，让我们回到文章开头的问题：</p>
+<blockquote>
+<p><code>xxx.pack</code> 文件是什么东西? 为什么它会这么大?</p>
+</blockquote>
+<p>接下来我们逐个回答。</p>
+<h3 id="Packfile"><a href="#Packfile" class="headerlink" title="Packfile"></a>Packfile</h3><p>为了解释 packfile 的作用，我们基于 <a href="#举一个栗子">举一个栗子</a> 中的 git 仓库，做一些操作：</p>
+<p>首先我们向仓库提交一个体积较大的源文件。这里我们选取 <a href="https://vuejs.org" target="_blank" rel="noopener">vue.js</a> 源代码中 vdom 的核心代码 <a href="https://github.com/vuejs/vue/blob/dev/src/core/vdom/patch.js" target="_blank" rel="noopener"><code>patch.js</code></a>：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">$ curl https://raw.githubusercontent.com/vuejs/vue/dev/src/core/vdom/patch.js &gt; src/patch.js</div><div class="line">$ git add src/patch.js</div><div class="line">$ git commit -m <span class="string">'added patch.js'</span></div></pre></td></tr></table></figure>
+<p>观察 git 对 <code>patch.js</code> 的记录：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">$ git cat-file -p master^&#123;tree&#125; <span class="comment"># 查看当前 commit 记录下引用的 git 对象节点列表</span></div><div class="line">100644 blob edafe27e250ef26f694b25afce81bdaf96f44eb0	Readme.md</div><div class="line">040000 tree 8c6b7113372ebc4882180bff942b0ab02439aacc	src</div><div class="line"></div><div class="line">$ git cat-file -p 8c6b7113372ebc4882180bff942b0ab02439aacc <span class="comment"># 查看 src/ 下所有文件的 git 对象信息</span></div><div class="line">100644 blob bdacba00da0ef745a2bdfdee7844ecc97db19cb0	index.js</div><div class="line">100644 blob 2052df913b3f240f0407673b775a554d964<span class="built_in">cd</span>15a	patch.js</div><div class="line"></div><div class="line">$ git cat-file <span class="_">-s</span> 2052df913b3f240f0407673b775a554d964<span class="built_in">cd</span>15a <span class="comment"># patch.js 大小大概是 26.5kb</span></div><div class="line">26565</div></pre></td></tr></table></figure>
+<p>现在我们稍微对 <code>patch.js</code> 做一些修改：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">$ <span class="built_in">echo</span> <span class="string">'// appending one testing line'</span> &gt;&gt; src/patch.js</div><div class="line">$ git commit -am <span class="string">'modified patch.js'</span></div><div class="line">[master b823eae] modified patch.js</div><div class="line"> 1 file changed, 1 insertion(+)</div></pre></td></tr></table></figure>
+<p>重新观察 <code>patch.js</code>：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">$ git cat-file -p master^&#123;tree&#125;</div><div class="line">100644 blob edafe27e250ef26f694b25afce81bdaf96f44eb0	Readme.md</div><div class="line">040000 tree ce9de001b849100b9405720c93fb5e54eac178dc	src</div><div class="line"></div><div class="line">$ git cat-file -p ce9de001b849100b9405720c93fb5e54eac178dc</div><div class="line">100644 blob bdacba00da0ef745a2bdfdee7844ecc97db19cb0	index.js</div><div class="line">100644 blob aa79e3510892b6213cdd6f84aa321f00abb6eb70	patch.js</div></pre></td></tr></table></figure>
+<p>可以看到，<code>patch.js</code> 对应一个全新的 git blob 对象；也就是说，即便我们只是对文件做了1行的修改，git 也会重新生成一个新的文件的“副本”：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ git cat-file <span class="_">-s</span> aa79e3510892b6213cdd6f84aa321f00abb6eb70 <span class="comment"># patch.js 大小几乎没有发生变化, 但这个 git 对象已经是一个全新的了</span></div><div class="line">26595</div></pre></td></tr></table></figure>
+<p>在实际开发中，我们经常会对文件进行反复的修改，如果每次修改 git 都要重新生成一个副本，那仓库的实际体积将迅速增大！有没有办法只记录每次提交的变更内容，而不是单纯的将整个文件的状态完全保留下来呢？</p>
+<p>事实上 git 是可以这么做的。刚才我们看到的 git 存储对象时所使用的格式被称为“松散（loose）“对象格式。但 git 会时不时将多个对象打包成一个称为 packfile 的二进制文件，以节省空间和提高效率。当版本库中有太多的松散对象时，git 会在我们和远程仓库进行通信（推送或拉取）时自动进行打包操作。</p>
+<p>我们也可以通过 <code>git gc</code> 指令手动触发打包行为：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">$ git gc</div><div class="line">Counting objects: 15, done.</div><div class="line">Delta compression using up to 8 threads.</div><div class="line">Compressing objects: 100% (12/12), done.</div><div class="line">Writing objects: 100% (15/15), done.</div><div class="line">Total 15 (delta 1), reused 0 (delta 0)</div></pre></td></tr></table></figure>
+<p>这时候如果我们再观察 git 数据库的对象，则会发现我们在例子中看到的各个文件的副本都消失了，取而代之的是两个后缀分别为 <code>.idx</code> 和 <code>.pack</code> 的文件：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">$ find .git/objects -type f</div><div class="line">.git/objects/pack/pack-fb3f62dbf81ab8480462c2d7edfe36785c090c34.idx</div><div class="line">.git/objects/pack/pack-fb3f62dbf81ab8480462c2d7edfe36785c090c34.pack</div><div class="line">.git/objects/info/packs</div></pre></td></tr></table></figure>
+<p>分别观察这两个文件，发现它们的体积都很小：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">$ du -sh .git/objects/pack/pack-fb3f62dbf81ab8480462c2d7edfe36785c090c3.pack</div><div class="line">8.0K	.git/objects/pack/pack-fb3f62dbf81ab8480462c2d7edfe36785c090c34.pack</div><div class="line"></div><div class="line">$ du -sh .git/objects/pack/pack-fb3f62dbf81ab8480462c2d7edfe36785c090c3.idx</div><div class="line">4.0K	.git/objects/pack/pack-fb3f62dbf81ab8480462c2d7edfe36785c090c34.idx</div></pre></td></tr></table></figure>
+<p>这两个文件分别就是 packfile 和它的索引：</p>
+<ul>
+<li>packfile 包含了刚才从文件系统中移除的所有对象的内容</li>
+<li>索引文件包含了包文件的偏移信息</li>
+</ul>
+<p>我们通过索引文件就可以快速定位任意一个指定对象。观察打包前后的仓库大小，我们发现通过打包对象减少了 2/3 的磁盘占用空间。</p>
+<p>git 是如何做到这点的？git 打包对象时，会查找命名及大小相近的文件，并只保存文件不同版本之间的差异内容。我们可以利用 <code>git verify-pack</code> 这个底层命令查看已打包的内容：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">git-example-repo on  master ➜ git verify-pack -v .git/objects/pack/pack-fb3f62dbf81ab8480462c2d7edfe36785c090c34.idx</div><div class="line">b823eae6cbbf9c2109ba3bee65ce6dc15768f585 commit 230 159 12</div><div class="line">5f84f91f1166877d492f63b85ed7883b442b8bea commit 227 158 171</div><div class="line">8fd15dbfbba5fd5b981de38f5177c8029693f4fb commit 231 157 329</div><div class="line">120c03e073cdf409403224c406fdfb022a63e750 commit 175 122 486</div><div class="line">edafe27e250ef26f694b25afce81bdaf96f44eb0 blob   29 36 608</div><div class="line">bdacba00da0ef745a2bdfdee7844ecc97db19cb0 blob   52 54 644</div><div class="line">aa79e3510892b6213cdd6f84aa321f00abb6eb70 blob   26595 6886 698</div><div class="line">a14f60a7108b2693373c6206270f20078e67cf32 tree   67 78 7584</div><div class="line">ce9de001b849100b9405720c93fb5e54eac178dc tree   72 79 7662</div><div class="line">9fcd22f080fe51922392d4a8b1ef368c40193b0d tree   67 77 7741</div><div class="line">8c6b7113372ebc4882180bff942b0ab02439aacc tree   72 78 7818</div><div class="line">2052df913b3f240f0407673b775a554d964<span class="built_in">cd</span>15a blob   9 20 7896 1 aa79e3510892b6213cdd6f84aa321f00abb6eb70</div><div class="line">e05e71a0142e288df830343f06c2e9549511b159 tree   67 78 7916</div><div class="line">ffcee3ab51c6a5903bc8a9ca9378a5672e44ea36 tree   36 47 7994</div><div class="line">490e706c59461270e6f3c0d47356ac84e8c0bc1b tree   37 48 8041</div><div class="line">non delta: 14 objects</div><div class="line">chain length = 1: 1 object</div><div class="line">.git/objects/pack/pack-fb3f62dbf81ab8480462c2d7edfe36785c090c34.pack: ok</div></pre></td></tr></table></figure>
+<p>这里的输出内容中，第3列就是 git 打包后对象的体积大小。我们可以留意下关于 <code>patch.js</code> 的两个 blob 对象的记录（读者可以向上对照下 SHA-1 hash 值）：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">aa79e3510892b6213cdd6f84aa321f00abb6eb70 blob   26595 6886 698</div><div class="line">2052df913b3f240f0407673b775a554d964cd15a blob   9 20 7896 1 aa79e3510892b6213cdd6f84aa321f00abb6eb70</div></pre></td></tr></table></figure>
+<p>其中第1行是 <code>patch.js</code> 第2个副本的记录，文件大小没有变化；而第2行中指向 <code>patch.js</code> 的最早的副本，大小只有9个字节，且附带了一个指向最新副本的指针。这里正是 git 通过内部 diff 的方式，将提交本身的变更内容保留了下来（并做了压缩），最终加入到 packfile 中。</p>
+<p>那么至此我们可以简单地回答文章开头的问题了：</p>
+<ul>
+<li><code>.pack</code> 文件是 git 的 packfile，是 git 打包操作后对松散 git 对象的压缩整合，最大限度地减少了磁盘占用的空间</li>
+<li><code>.pack</code> 文件庞大的原因，是因为它需要保留整个 git 仓库绝大部分历史提交的信息</li>
+</ul>
+<p>但问题还是存在的：我们的实习生用了1个小时来下载代码！如何解决这个问题呢？</p>
+<h3 id="git-仓库的清理"><a href="#git-仓库的清理" class="headerlink" title="git 仓库的清理"></a>git 仓库的清理</h3><p>如果我们去观察一些已有的开发仓库，通常会发现 <code>.git/objects/pack</code> 里有不止一个 <code>.pack</code> 和 <code>.idx</code> 文件，而且有些 <code>.pack</code> 非常的庞大。事实上，如果某个人在之前向项目添加了一个大小特别大的文件，即使你将这个文件从项目中移除了，每次克隆还是都要强制的下载这个大文件。 之所以会产生这个问题，是因为这个文件在历史中是存在的，它会永远在那里。</p>
+<p>所以为了从根本上避免这个问题，我们需要对 git 提交历史上出现过的大文件进行永久的清理。这是一个非常麻烦的事情，读者可以参考以下几篇文章：</p>
+<ul>
+<li><a href="https://git-scm.com/book/zh/v2/Git-%E5%86%85%E9%83%A8%E5%8E%9F%E7%90%86-%E7%BB%B4%E6%8A%A4%E4%B8%8E%E6%95%B0%E6%8D%AE%E6%81%A2%E5%A4%8D" target="_blank" rel="noopener">https://git-scm.com/book/zh/v2/Git-%E5%86%85%E9%83%A8%E5%8E%9F%E7%90%86-%E7%BB%B4%E6%8A%A4%E4%B8%8E%E6%95%B0%E6%8D%AE%E6%81%A2%E5%A4%8D</a></li>
+<li><a href="https://stackoverflow.com/questions/11050265/remove-large-pack-file-created-by-git" target="_blank" rel="noopener">https://stackoverflow.com/questions/11050265/remove-large-pack-file-created-by-git</a></li>
+<li><a href="https://help.github.com/en/articles/removing-sensitive-data-from-a-repository" target="_blank" rel="noopener">https://help.github.com/en/articles/removing-sensitive-data-from-a-repository</a></li>
+</ul>
+<p>当然，我也会尽快地在我们的开发仓库上应用一些实践，后续会在这里补充更多的操作方式细节。</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a href="https://git-scm.com/book/en/v2" target="_blank" rel="noopener">Pro Git, 2nd Edition</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/45510461" target="_blank" rel="noopener">深入理解 git 实现原理</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/53750883" target="_blank" rel="noopener">放弃理解 git（一）：git 内部原理</a></li>
+<li><a href="https://juejin.im/post/5c714d18f265da2d98090503#heading-8" target="_blank" rel="noopener">图解git原理与日常实用指南</a></li>
+<li><a href="https://www.atlassian.com/git/tutorials/using-branches/merge-strategy" target="_blank" rel="noopener">git Merge Stretegy Options and Examples</a></li>
+<li><a href="https://mincong-h.github.io/2018/04/28/git-index/" target="_blank" rel="noopener">git: Understanding the Index File</a></li>
+<li><a href="https://git-scm.com/book/zh/v2/Git-%E5%86%85%E9%83%A8%E5%8E%9F%E7%90%86-%E7%BB%B4%E6%8A%A4%E4%B8%8E%E6%95%B0%E6%8D%AE%E6%81%A2%E5%A4%8D" target="_blank" rel="noopener">https://git-scm.com/book/zh/v2/Git-%E5%86%85%E9%83%A8%E5%8E%9F%E7%90%86-%E7%BB%B4%E6%8A%A4%E4%B8%8E%E6%95%B0%E6%8D%AE%E6%81%A2%E5%A4%8D</a></li>
+<li><a href="https://stackoverflow.com/questions/11050265/remove-large-pack-file-created-by-git" target="_blank" rel="noopener">https://stackoverflow.com/questions/11050265/remove-large-pack-file-created-by-git</a></li>
+<li><a href="https://help.github.com/en/articles/removing-sensitive-data-from-a-repository" target="_blank" rel="noopener">https://help.github.com/en/articles/removing-sensitive-data-from-a-repository</a></li>
+</ul>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h1 id=&quot;浅析-git-数据管理&quot;&gt;&lt;a href=&quot;#浅析-git-数据管理&quot; class=&quot;headerlink&quot; title=&quot;浅析 git 数据管理&quot;&gt;&lt;/a&gt;浅析 git 数据管理&lt;/h1&gt;&lt;p&gt;两个月前，团队来了个新的实习生。我们让他协助开发一个 Java 服务
+    
+    </summary>
+    
+    
+  </entry>
   
   <entry>
     <title>iFrame 那些事</title>
@@ -432,7 +799,7 @@
 <p><code>catch</code> 可以处理 observable 处理过程中出现的异常，可以通过返回一个新的 observable 来发送新的值：</p>
 <figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">let</span> source = Rx.Observable.from([<span class="string">'a'</span>, <span class="string">'b'</span>, <span class="string">'c'</span>, <span class="string">'d'</span>, <span class="number">2</span>, <span class="string">'...'</span>])</div><div class="line">    .zip(Rx.Observable.interval(<span class="number">500</span>), (x, y) =&gt; x)</div><div class="line"></div><div class="line"><span class="keyword">let</span> example = source</div><div class="line">                .map(<span class="function"><span class="params">x</span> =&gt;</span> x.toUpperCase())</div><div class="line">                .catch(<span class="function"><span class="params">error</span> =&gt;</span> Rx.Observable.of(<span class="string">'h'</span>, <span class="string">'e'</span>, <span class="string">'l'</span>, <span class="string">'l'</span>, <span class="string">'o'</span>))</div><div class="line"></div><div class="line">example.subscribe(&#123;</div><div class="line">    <span class="attr">next</span>: <span class="function">(<span class="params">value</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(value) &#125;,</div><div class="line">    <span class="attr">error</span>: <span class="function">(<span class="params">err</span>) =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">'Error: '</span> + err) &#125;,</div><div class="line">    <span class="attr">complete</span>: <span class="function"><span class="params">()</span> =&gt;</span> &#123; <span class="built_in">console</span>.log(<span class="string">'complete'</span>) &#125;</div><div class="line">&#125;)</div></pre></td></tr></table></figure>
 <p>这段代码对应的 Marble Diagram 是这样的：</p>
-<figure class="highlight brainfuck"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="comment">source</span> <span class="comment">:</span> <span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">a</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">b</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">c</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">d</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">2|</span></div><div class="line">        <span class="comment">map(x</span> <span class="comment">=</span>&gt; <span class="comment">x</span><span class="string">.</span><span class="comment">toUpperCase())</span></div><div class="line">         <span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">a</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">b</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">c</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">d</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">X|</span></div><div class="line">        <span class="comment">catch(error</span> <span class="comment">=</span>&gt; <span class="comment">Rx</span><span class="string">.</span><span class="comment">Observable</span><span class="string">.</span><span class="comment">of('h'))</span></div><div class="line"><span class="comment">example:</span> <span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">a</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">b</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">c</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">d</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">h</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">e</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">l</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">l</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">o|</span></div></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">source : ----a----b----c----d----2|</div><div class="line">        map(x =&gt; x.toUpperCase())</div><div class="line">         ----a----b----c----d----X|</div><div class="line">        catch(error =&gt; Rx.Observable.of(&apos;h&apos;))</div><div class="line">example: ----a----b----c----d----h----e----l----l---o|</div></pre></td></tr></table></figure>
 <p>可以在 <code>catch</code> 的回调函数中，通过返回一个空的 observable（如：<code>Rx.Observable.empty()</code>）来让原有的 observable 结束。</p>
 <h3 id="Practical-Example"><a href="#Practical-Example" class="headerlink" title="Practical Example"></a>Practical Example</h3><p>为了让读者更加直观理解 Observable 的具体使用，来几个例子：这里要鸣谢 “30天精通 RxJS” 教程的作者 @jerryhong，以下例子均出自他的教程。</p>
 <ul>
@@ -701,7 +1068,7 @@
 <p><strong>Promise A+ spec, 2.3.2:</strong></p>
 <p><em><a href="https://promisesaplus.com/" target="_blank" rel="noopener">Promise A+ 标准</a></em> 中对于 <code>then</code> 方法有以下规定：</p>
 <blockquote>
-<p>…<br>2.2.7 <code>then</code> must return a promise [3.3]<br><figure class="highlight ini"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="attr">promise2</span> = promise1.then(<span class="literal">on</span>Fulfilled, <span class="literal">on</span>Rejected);</div></pre></td></tr></table></figure></p>
+<p>…<br>2.2.7 <code>then</code> must return a promise [3.3]<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">promise2 = promise1.then(onFulfilled, onRejected);</div></pre></td></tr></table></figure></p>
 <p>  2.2.7.1 If either <code>onFulfilled</code> or <code>onRejected</code> returns a value <code>x</code>, run the Promise Resolution Procedure <code>[[Resolve]](promise2, x)</code><br>  …<br>  …<br>  2.3 The Promise Resolution Procedure<br>  The <strong>promise resolution procedure</strong> is an abstract operation taking as input a promise and a value, which we donate as <code>[[Resolve]](promise, x)</code>. If <code>x</code> is a thenable, it attempts to make <code>promise</code> adopt the state of <code>x</code>, under the assumption that <code>x</code> behaves at least somewhat like a promise. Otherwise, it fulfills <code>promise</code> with the value <code>x</code>.<br>  …<br>  2.3.2 If <code>x</code> is a promise, adopt its state [3.4]:<br>  2.3.2.1 If <code>x</code> is pending, <code>promise</code> must remain pending until <code>x</code> is fulfilled or rejected.<br>  2.3.2.2 If/when <code>x</code> is fulfilled, fulfill <code>promise</code> with the same value.<br>  2.3.2.3 If/when <code>x</code> is rejected, reject <code>promise</code> with the same reason.<br>  …..</p>
 </blockquote>
 <p>这里我尝试翻译一下：</p>
@@ -2304,7 +2671,7 @@
 <li>创建一个文件夹作为模块的文件夹</li>
 <li>在文件夹中新建两个 php 文件，分别是 <code>my_custom_module.module</code> 和 <code>my_custom_module.info</code>。module 文件是该模块的主文件入口，info 文件是该模块的定义，记录关于该模块的元信息。</li>
 <li><p>初始化 <code>my_custom_module.info</code> 文件。info 文件的通用模板为：</p>
-<figure class="highlight ini"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="attr">name</span> = My Custom Module</div><div class="line"><span class="attr">description</span> = A description of what your module does</div><div class="line"><span class="attr">core</span> = <span class="number">7</span>.x</div></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">name = My Custom Module</div><div class="line">description = A description of what your module does</div><div class="line">core = 7.x</div></pre></td></tr></table></figure>
 <p>这里的 name 和 description 会显示在网站后台的模块管理界面中，作为模块的名字和介绍。关于 info 文件的详细介绍可以参考相应的 <a href="http://drupal.org/node/542202" title="info 文件的介绍" target="_blank" rel="noopener">Drupal 文档</a>.</p>
 </li>
 <li><p>初始化 <code>my_custom_module.module</code> 文件。在没有添加任何功能前，先在文件中加入一行 php 的开头标签（不需要结尾，如果加入结尾标签可能会导致一些运行问题）</p>
@@ -2344,27 +2711,6 @@
       <category term="Drupal" scheme="http://afantasy.ninja/tags/Drupal/"/>
     
       <category term="Translation" scheme="http://afantasy.ninja/tags/Translation/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>The very new start</title>
-    <link href="http://afantasy.ninja/2015/06/06/The-very-new-start/"/>
-    <id>http://afantasy.ninja/2015/06/06/The-very-new-start/</id>
-    <published>2015-06-05T20:25:36.000Z</published>
-    <updated>2015-06-05T20:40:07.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>不管如何追忆和缅怀，过去的总是过去式。<br>这里记录所有新的冒险。<br><a id="more"></a><br>从高三开始写网易博客到大学，凡是心情低落、情绪不稳、或者心里有些不得不说的事情时，都用写 blog 的方式来解决。现在看来，还是充斥了不少的负能量的。<br>随着各个好友的博客陆续停更，似乎在网易博客自言自语不再是一个好的选项（同时它的排版让我越来越不舒服），以及我还是比较喜欢简洁的主题（网易的太复杂了）。<br>所以作为码农/程序猿/攻城狮，是时候搭自己的窝了（尽管这还是太晚了）。</p>
-<p>这里会记录今后所有的冒险：去的地方、做的事情、写的代码、遇见的人。</p>
-<p>同时网易博客正式停更。私人的内容回归 Evernote，可以分享的就在这里了。</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;不管如何追忆和缅怀，过去的总是过去式。&lt;br&gt;这里记录所有新的冒险。&lt;br&gt;
-    
-    </summary>
-    
     
   </entry>
   

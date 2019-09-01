@@ -2,16 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://afantasy.ninja/2016/02/09/what-i-am-thinking-before-asking-questions/</loc>
+    <loc>http://afantasy.ninja/2019/06/08/brief-talk-about-git-data/</loc>
     
-    <lastmod>2018-07-21T18:39:59.000Z</lastmod>
+    <lastmod>2019-09-01T14:11:03.460Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://afantasy.ninja/2018/07/15/dive-into-iframe/</loc>
+    <loc>http://afantasy.ninja/2016/02/09/what-i-am-thinking-before-asking-questions/</loc>
     
-    <lastmod>2018-07-21T18:14:35.000Z</lastmod>
+    <lastmod>2018-07-21T18:39:59.000Z</lastmod>
     
   </url>
   
@@ -23,14 +23,14 @@
   </url>
   
   <url>
-    <loc>http://afantasy.ninja/2018/04/08/co-source-reading/</loc>
+    <loc>http://afantasy.ninja/2018/07/15/dive-into-iframe/</loc>
     
-    <lastmod>2018-07-21T14:13:08.000Z</lastmod>
+    <lastmod>2018-07-21T18:14:35.000Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://afantasy.ninja/tags/index.html</loc>
+    <loc>http://afantasy.ninja/2015/06/05/blog-by-hexo-and-github-page/</loc>
     
     <lastmod>2018-07-21T14:13:08.000Z</lastmod>
     
@@ -44,7 +44,7 @@
   </url>
   
   <url>
-    <loc>http://afantasy.ninja/2016/02/05/how-to-create-a-module-in-drupal-7/</loc>
+    <loc>http://afantasy.ninja/2017/05/08/user-tracking-i/</loc>
     
     <lastmod>2018-07-21T14:13:08.000Z</lastmod>
     
@@ -52,6 +52,13 @@
   
   <url>
     <loc>http://afantasy.ninja/2017/05/08/user-tracking-iv/</loc>
+    
+    <lastmod>2018-07-21T14:13:08.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://afantasy.ninja/2017/05/08/user-tracking-ii/</loc>
     
     <lastmod>2018-07-21T14:13:08.000Z</lastmod>
     
@@ -72,28 +79,21 @@
   </url>
   
   <url>
-    <loc>http://afantasy.ninja/2015/06/05/blog-by-hexo-and-github-page/</loc>
+    <loc>http://afantasy.ninja/2016/02/05/how-to-create-a-module-in-drupal-7/</loc>
     
     <lastmod>2018-07-21T14:13:08.000Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://afantasy.ninja/2018/05/11/translation-the-tc39-process/</loc>
+    <loc>http://afantasy.ninja/2018/04/08/co-source-reading/</loc>
     
     <lastmod>2018-07-21T14:13:08.000Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://afantasy.ninja/2017/05/08/user-tracking-i/</loc>
-    
-    <lastmod>2018-07-21T14:13:08.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://afantasy.ninja/2017/05/08/user-tracking-ii/</loc>
+    <loc>http://afantasy.ninja/2018/01/13/speculative-parsing-async-defer-perload/</loc>
     
     <lastmod>2018-07-21T14:13:08.000Z</lastmod>
     
@@ -107,7 +107,14 @@
   </url>
   
   <url>
-    <loc>http://afantasy.ninja/2018/01/13/speculative-parsing-async-defer-perload/</loc>
+    <loc>http://afantasy.ninja/2018/05/11/translation-the-tc39-process/</loc>
+    
+    <lastmod>2018-07-21T14:13:08.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://afantasy.ninja/tags/index.html</loc>
     
     <lastmod>2018-07-21T14:13:08.000Z</lastmod>
     
