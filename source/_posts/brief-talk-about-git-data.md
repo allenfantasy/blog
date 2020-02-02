@@ -280,7 +280,7 @@ $ git cat-file -p 490e706c59461270e6f3c0d47356ac84e8c0bc1b
 
 这时我们的几个 git 对象之间的关系是这样的：
 
-![](../images/commit-1.png)
+![](/images/commit-1.png)
 
 随后我们在 `src/index.js` 中编写一段代码，并提交：
 
@@ -337,7 +337,7 @@ $ tree .git/objects
 
 用图来表示会更直观一些：
 
-![](../images/commit-2.jpg)
+![](/images/commit-2.jpg)
 
 第二个 commit 的图中，包含了很多信息。
 
@@ -355,7 +355,7 @@ $ tree .git/objects
 
 如果我们将 `.git/objects` 里所有的对象都放到一个图中，就会是这样的：
 
-![](../images/all-git-objects.jpg)
+![](/images/all-git-objects.jpg)
 
 其中的对象间的关系，大家可以尝试自己体会 :p
 
@@ -386,7 +386,7 @@ git 提供了「分支」的概念来支持用户进行分叉操作。**git 的�
 
 在我们新建一个仓库并完成提交（或者从远程同步一个仓库到本地）时，都会发现当前已经存在一个叫做 `master` 的分支。这是因为 git 默认会创建一个名为 `master` 的指针，并指向最近一次的 commit 对象。在每次 commit 后，`master` 指针会跟着移动，指向新生成的 commit 对象。这时候的状态如下图：
 
-![](../images/branch-1.jpg)
+![](/images/branch-1.jpg)
 
 我们可以创建一个新的分支：
 
@@ -678,7 +678,7 @@ no changes added to commit (use "git add" and/or "git commit -a")
 
 这时需要我们手动去解决代码冲突。出现冲突的文件会包含一些特殊区段，类似这样：
 
-![](../images/git-merge-conflict-example.jpg)
+![](/images/git-merge-conflict-example.jpg)
 
 git 将冲突的双方对该文件的修改，都保留在界面上，用 `=========` 来分割两部分。我们可以根据实际需要，选择其中的某个部分，或者自行合并内容。很多编辑器（如 VSCode）和 IDE（如 WebStorm）对处理冲突提供了很好的支持，也可以选择借助它们来处理。
 
