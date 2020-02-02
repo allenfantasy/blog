@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://afantasy.ninja/"/>
-  <updated>2019-09-01T14:32:43.780Z</updated>
+  <updated>2020-02-02T05:50:04.331Z</updated>
   <id>http://afantasy.ninja/</id>
   
   <author>
@@ -20,7 +20,7 @@
     <link href="http://afantasy.ninja/2019/09/01/brief-talk-about-git-data/"/>
     <id>http://afantasy.ninja/2019/09/01/brief-talk-about-git-data/</id>
     <published>2019-09-01T14:25:00.000Z</published>
-    <updated>2019-09-01T14:32:43.780Z</updated>
+    <updated>2020-02-02T05:50:04.331Z</updated>
     
     <content type="html"><![CDATA[<p>两个月前，团队来了个新的实习生。我们让他协助开发一个 Java 服务。第二天发生了一个鬼故事：</p>
 <blockquote>
@@ -148,7 +148,7 @@
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">$ git cat-file -t 490e706c59461270e6f3c0d47356ac84e8c0bc1b</div><div class="line">tree</div><div class="line"></div><div class="line">$ git cat-file -p 490e706c59461270e6f3c0d47356ac84e8c0bc1b</div><div class="line">100644 blob edafe27e250ef26f694b25afce81bdaf96f44eb0	Readme.md</div></pre></td></tr></table></figure>
 <p>而第二个文件则是一个 <code>tree</code> 类型的对象。它的内容包含了 <code>Readme.md</code> 这个文件的名称，对应的 git blob 对象的 SHA-1 hash 和文件模式（100644）。</p>
 <p>这时我们的几个 git 对象之间的关系是这样的：</p>
-<p><img src="../images/commit-1.png" alt=""></p>
+<p><img src="/images/commit-1.png" alt=""></p>
 <p>随后我们在 <code>src/index.js</code> 中编写一段代码，并提交：</p>
 <figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// index.js</span></div><div class="line"><span class="built_in">console</span>.log(<span class="string">'this is index.js'</span>)</div><div class="line"><span class="comment">// TODO</span></div></pre></td></tr></table></figure>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ git add src/index.js</div><div class="line">$ git commit -m <span class="string">'init project index'</span></div></pre></td></tr></table></figure>
@@ -176,7 +176,7 @@
 </li>
 </ul>
 <p>用图来表示会更直观一些：</p>
-<p><img src="../images/commit-2.jpg" alt=""></p>
+<p><img src="/images/commit-2.jpg" alt=""></p>
 <p>第二个 commit 的图中，包含了很多信息。</p>
 <p>首先，相比于上一个图，不难留意到 <code>490e7...</code> 这个 tree 对象的内容中，除了包含对 blob 对象的引用外，还包含对另一个 tree 对象的引用：<code>ffcee...</code>，且引用中注明了 <code>src</code> 这个文件夹名称。</p>
 <p>从概念上讲，从项目顶层目录开始，git 储存的实际数据结构有点像这样：</p>
@@ -185,7 +185,7 @@
 <p>另外，在上一个 commit 中出现的 <code>Readme.md</code> 仍然出现在图中，只是这次是一个名为 <code>490e7...</code> 的 tree 对象记录了 <code>Readme.md</code> 的 blob 对象的 hash。</p>
 <p>此外，还需要注意的是 <code>a1a6b...</code> 这个 commit 对象，除了包含 tree 引用，提交者信息和 commit 日志外，还附带了一个 <code>parent</code> 信息，正好是上一个 commit 的 SHA-1 hash <code>56319...</code></p>
 <p>如果我们将 <code>.git/objects</code> 里所有的对象都放到一个图中，就会是这样的：</p>
-<p><img src="../images/all-git-objects.jpg" alt=""></p>
+<p><img src="/images/all-git-objects.jpg" alt=""></p>
 <p>其中的对象间的关系，大家可以尝试自己体会 :p</p>
 <h3 id="git-对象小结"><a href="#git-对象小结" class="headerlink" title="git 对象小结"></a>git 对象小结</h3><p>从上一节的例子中，我们可以得到一些基本的结论：</p>
 <ul>
@@ -203,7 +203,7 @@
 <p>但如果是两个人在开发，必然会出现并行工作的情况（总不能 A 先眼巴巴等着 B 开发完再开发吧），在提交历史上我们就会出现分叉。</p>
 <p>git 提供了「分支」的概念来支持用户进行分叉操作。<strong>git 的分支本质上只是指向 commit 对象的可变指针</strong>，让我们来详细说明这一点：</p>
 <p>在我们新建一个仓库并完成提交（或者从远程同步一个仓库到本地）时，都会发现当前已经存在一个叫做 <code>master</code> 的分支。这是因为 git 默认会创建一个名为 <code>master</code> 的指针，并指向最近一次的 commit 对象。在每次 commit 后，<code>master</code> 指针会跟着移动，指向新生成的 commit 对象。这时候的状态如下图：</p>
-<p><img src="../images/branch-1.jpg" alt=""></p>
+<p><img src="/images/branch-1.jpg" alt=""></p>
 <p>我们可以创建一个新的分支：</p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ git branch testing <span class="comment"># 在当前提交对象上创建一个新的指针</span></div></pre></td></tr></table></figure>
 <blockquote>
@@ -301,7 +301,7 @@
 <p>当产生一个冲突时，git 不会自动生成一个 merge commit，而是会暂停下来，等待你去解决合并产生的冲突。可以用 <code>git status</code> 来查看：</p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">$ git status</div><div class="line">On branch master</div><div class="line">You have unmerged paths.</div><div class="line">  (fix conflicts and run <span class="string">"git commit"</span>)</div><div class="line"></div><div class="line">Unmerged paths:</div><div class="line">  (use <span class="string">"git add &lt;file&gt;..."</span> to mark resolution)</div><div class="line"></div><div class="line">    both modified:      index.html</div><div class="line"></div><div class="line">no changes added to commit (use <span class="string">"git add"</span> and/or <span class="string">"git commit -a"</span>)</div></pre></td></tr></table></figure>
 <p>这时需要我们手动去解决代码冲突。出现冲突的文件会包含一些特殊区段，类似这样：</p>
-<p><img src="../images/git-merge-conflict-example.jpg" alt=""></p>
+<p><img src="/images/git-merge-conflict-example.jpg" alt=""></p>
 <p>git 将冲突的双方对该文件的修改，都保留在界面上，用 <code>=========</code> 来分割两部分。我们可以根据实际需要，选择其中的某个部分，或者自行合并内容。很多编辑器（如 VSCode）和 IDE（如 WebStorm）对处理冲突提供了很好的支持，也可以选择借助它们来处理。</p>
 <blockquote>
 <p>这里最好的方式是拉上另一个分支的同伴（如果有多人协作的话）一起审查这个 conflict，这样可以避免单方面操作对某部分的代码造成意料之外的伤害。</p>
