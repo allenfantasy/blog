@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://afantasy.ninja/"/>
-  <updated>2020-02-15T08:11:00.887Z</updated>
+  <updated>2020-02-15T08:13:43.002Z</updated>
   <id>http://afantasy.ninja/</id>
   
   <author>
@@ -20,7 +20,7 @@
     <link href="http://afantasy.ninja/2020/02/15/cookie-samesite/"/>
     <id>http://afantasy.ninja/2020/02/15/cookie-samesite/</id>
     <published>2020-02-14T16:00:00.000Z</published>
-    <updated>2020-02-15T08:11:00.887Z</updated>
+    <updated>2020-02-15T08:13:43.002Z</updated>
     
     <content type="html"><![CDATA[<p>对 <code>SameSite</code> 做些简单的研究探讨，没什么新鲜的，仅做记录参考。</p>
 <a id="more"></a>
@@ -98,6 +98,7 @@
 <h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
 <li><a href="https://web.dev/samesite-cookies-explained/" target="_blank" rel="noopener">https://web.dev/samesite-cookies-explained/</a></li>
 <li><a href="https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-03#section-4.1" target="_blank" rel="noopener">https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-03#section-4.1</a></li>
+<li><a href="https://www.ruanyifeng.com/blog/2019/09/cookie-samesite.html" target="_blank" rel="noopener">https://www.ruanyifeng.com/blog/2019/09/cookie-samesite.html</a></li>
 </ul>
 ]]></content>
     
