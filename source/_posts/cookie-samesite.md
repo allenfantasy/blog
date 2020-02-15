@@ -138,3 +138,4 @@ Set-Cookie: widget_session=123; SameSite=None; Secure
 
 * https://web.dev/samesite-cookies-explained/
 * https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-03#section-4.1
+* https://www.ruanyifeng.com/blog/2019/09/cookie-samesite.html
