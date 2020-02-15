@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://afantasy.ninja/"/>
-  <updated>2020-02-02T05:50:04.331Z</updated>
+  <updated>2020-02-15T08:11:00.887Z</updated>
   <id>http://afantasy.ninja/</id>
   
   <author>
@@ -14,6 +14,101 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Cookie SameSite</title>
+    <link href="http://afantasy.ninja/2020/02/15/cookie-samesite/"/>
+    <id>http://afantasy.ninja/2020/02/15/cookie-samesite/</id>
+    <published>2020-02-14T16:00:00.000Z</published>
+    <updated>2020-02-15T08:11:00.887Z</updated>
+    
+    <content type="html"><![CDATA[<p>对 <code>SameSite</code> 做些简单的研究探讨，没什么新鲜的，仅做记录参考。</p>
+<a id="more"></a>
+<h2 id="为何需要-SameSite-Cookie-现存的问题"><a href="#为何需要-SameSite-Cookie-现存的问题" class="headerlink" title="为何需要 SameSite: Cookie 现存的问题"></a>为何需要 SameSite: Cookie 现存的问题</h2><p>在解释为何要 SameSite 时，首先我们解释下 first-party cookie 和 third-party cooki</p>
+<p><strong>First-Party Cookies</strong>: 和当前站点域名对应的 cookie<br><strong>Third-Party Cookies</strong>: 来自其他域名的 cookie</p>
+<p>以下我们探讨 cookie 现存的两个问题</p>
+<h3 id="占用请求带宽"><a href="#占用请求带宽" class="headerlink" title="占用请求带宽"></a>占用请求带宽</h3><p>第三方 cookie 在某些特定的场合的确是有用的，比如说你在页面中嵌入一个 YouTube 的播放器，那么如果用户的浏览器已经登录了 YouTube 那么，第三方 cookie 就可以保证用户可以在嵌入的播放器中使用已登录用户可使用的功能比如 <code>稍后再看</code>。</p>
+<p>但从总体来看，第三方资源中的 cookie 并不 <strong>总是</strong> 有用的，很多 cookie 其实不是必须的，但在对第三方资源（CDN 等）发起请求时还是被带上了。</p>
+<p>由于上传的带宽相比下载带宽更加的有限，这就增加了 TTFB (Time to first byte) 的时间。</p>
+<h3 id="CSRF"><a href="#CSRF" class="headerlink" title="CSRF"></a>CSRF</h3><p>首先有必要简单的介绍 CSRF：</p>
+<p>Cross-site request forgery (CSRF) 是一种常见的网页攻击手段。通过诱导用户访问钓鱼网站，并在网站中嵌入对攻击目标站点（如银行，金融产品，社交网络）的表单，诱导用户点击触发表单请求，就可以在当前用户已经登录目标站点（即：浏览器中含有 cookie）的前提下，在用户不知情时发起相关的操作（如：转账）。</p>
+<p>目前对 CSRF 的一个通用的防御方式，是在表单中增加一个随机的 token 字段，该 token 只能由表单所在的站点后台服务产生并派发到网页端；生成的 token 同时和当前用户的 session 关联；在接受表单请求时，服务端将校验当前用户的 session 是否与表单中携带的 token 是匹配的。如果是的话则允许表单通过。</p>
+<p>由于 token 的生成是无法由第三方控制的，所以这就简单地杜绝了 CSRF 的可能性。</p>
+<p>但利用第三方 cookie 对其域名服务进行攻击的可能性，理论上还是存在的，所以还是需要防备的。</p>
+<p>综上所述，我们需要的是能够对 cookie 进行不同的区分处理：对于不需要在第三方使用到的 cookie，最好是可以让浏览器在第三方站点请求我方站点资源时不带上；同时也可以允许第三方请求我方资源时带上某些 cookie 以保证用户的体验。</p>
+<h2 id="Here-comes-SameSite"><a href="#Here-comes-SameSite" class="headerlink" title="Here comes SameSite"></a>Here comes SameSite</h2><p><code>SameSite</code> 正是解决这个问题的方法。它是一个设置 Cookie 时用到的属性。可以用于声明你的 cookie 是否限定在同一个 site 下使用。</p>
+<p>当然我们有必要说明下这里的 <code>site</code>（以下称为”站点“）的含义：</p>
+<p>首先是 <a href="https://publicsuffix.org/list/public_suffix_list.dat" target="_blank" rel="noopener">Public Suffix List</a> 列举了所有的顶级域名后缀，如：</p>
+<ul>
+<li><code>.dev</code></li>
+<li><code>.com</code></li>
+<li><code>.github.io</code></li>
+</ul>
+<p>那么 <code>站点</code> 就是指顶级域名后缀加上在后缀之前的那一部分域名，如：</p>
+<ul>
+<li><code>web.dev</code> </li>
+<li><code>xxx.github.io</code></li>
+</ul>
+<p>在绝大部分的情况下，我们可以将 <code>站点</code> 简单理解为大家常说的 <code>一级域名</code>。那么 <code>SameSite</code> 所约束的同一个 site 其实就是指：</p>
+<blockquote>
+<p>同一个 <code>一级域名</code> 下的各个子域名间的资源属于同一个站点</p>
+</blockquote>
+<h3 id="使用-SameSite"><a href="#使用-SameSite" class="headerlink" title="使用 SameSite"></a>使用 SameSite</h3><p>我们可以在 <code>Set-Cookie</code> 时指定 <code>SameSite</code> 属性：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Set-Cookie: &lt;cookie-name&gt;=&lt;cookie-value&gt;; Domain=&lt;domain-value&gt;; HttpOnly; Secure; SameSite=&lt;same-site-value&gt;</div></pre></td></tr></table></figure>
+<p><code>SameSite</code> 可以设三个值：<code>Strict</code>，<code>Lax</code> 和 <code>None</code>。用一个图来清晰表达它们的使用场景：</p>
+<p><img src="https://web.dev/samesite-cookies-explained/samesite-none-lax-strict.png" alt=""></p>
+<h4 id="SameSite-Strict"><a href="#SameSite-Strict" class="headerlink" title="SameSite=Strict"></a><code>SameSite=Strict</code></h4><p>如果设置 <code>SameSite</code> 为 <code>Strict</code>，则完全禁止第三方 cookie，只有用户 <strong>已经在站点</strong> 上时发起的请求才可以带上这个 cookie。</p>
+<p>那就意味着任何从外部（我的理解是 <code>Referer</code> 不是站点本身，或者没有 <code>Referer</code>）访问这个站点的请求都不会带上 cookie。</p>
+<p>盲目地使用该值最可能触发的问题是影响用户 <strong>第一次访问（top-level navigation）</strong> 站点的体验，比如说如果把维持用户当前登录状态的 cookie 设成 <code>SameSite</code> 的，那么用户即便之前已经登录过站点，下一次直接从浏览器里输入地址（或者通过书签）访问，都是无法看到登录后内容的。又或者说用户在一个第三方站点里点击一个微博的链接，假如微博将登录 cookie 设成 <code>SameSite</code> 用户跳转后将发现自己处于未登录状态。</p>
+<p>所以在 <a href="https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-03#section-5.3.7" target="_blank" rel="noopener">RFC6265</a> 规范中也提到：</p>
+<blockquote>
+<p>… As discussed in <a href="https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-03#section-8.8.2" target="_blank" rel="noopener">Section 8.8.2</a>, this might or might<br>not be compatible with existing session management systems.</p>
+</blockquote>
+<p>所以如果是涉及到必须要用户在站点上操作的功能，将 cookie 设置为 <code>Strict</code> 比较合适，而对于第一次访问时使用的 cookie，一个更切实的做法是使用 <code>Lax</code> 属性值。</p>
+<h4 id="SameSite-Lax"><a href="#SameSite-Lax" class="headerlink" title="SameSite=Lax"></a><code>SameSite=Lax</code></h4><p>相比于 <code>Strict</code> 模式，<code>SameSite=Lax</code> 相对宽松一些，允许第一次导航到目标网址也带上 cookie。导航到目标网址有以下几种情况：</p>
+<ul>
+<li>链接：<code>&lt;a href=&quot;...&quot;&gt;...&lt;/a&gt;</code></li>
+<li>预加载：<code>&lt;link ref=&quot;prerender&quot; href=&quot;...&quot; /&gt;</code></li>
+<li>GET 表单：<code>&lt;form method=&quot;GET&quot; action=&quot;...&quot;&gt;</code></li>
+</ul>
+<p>这里值得留意的是 <a href="https://www.chromium.org/developers/design-documents/prerender" target="_blank" rel="noopener">predender</a> 的方式，在 <code>Lax</code> 模式下也是可以带上 cookie 的，如 <a href="https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-03#section-5.3.7" target="_blank" rel="noopener">规范中提到的</a>，站点的开发者应该小心处理关于用户权限相关的 cookie，只允许控制读权限的 cookie 使用 <code>Lax</code> 模式，以降低 CSRF 攻击风险。</p>
+<blockquote>
+<p>… Features like <code>&lt;link rel=&#39;prerender&#39;&gt;</code> prerendering can be<br>exploited to create “same-site” requests without the risk of user<br>detection.<br>…<br>When possible, developers should use a session management mechanism<br>such as that described in <a href="https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-03#section-8.8.2" target="_blank" rel="noopener">Section 8.8.2</a> to mitigate the risk of CSRF<br>more completely.</p>
+</blockquote>
+<h4 id="默认模式"><a href="#默认模式" class="headerlink" title="默认模式"></a>默认模式</h4><p>在规范中说明的，如果在设置 cookie 时并未显式声明 <code>SameSite</code> 则浏览器会认为该 cookie 可以在任何地方的请求中带上，这样的模式也可以通过 <code>SameSite=None</code> 显式地声明。注意声明时需要同时加上 <code>Secure</code> 否则声明无效：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Set-Cookie: widget_session=123; SameSite=None; Secure</div></pre></td></tr></table></figure>
+<p>虽然规范是允许我们不声明的，但值得一提的是在 Chrome 中，目前如果出现了没有声明 <code>SameSite</code> 的 cookie，会弹出一个警告信息：</p>
+<blockquote>
+<p>A cookie associated with a cross-site resource at <a href="http://xxx.yourwebsite.com" target="_blank" rel="noopener">http://xxx.yourwebsite.com</a> was set without the <code>SameSite</code> attribute. A future release of Chrome will only deliver cookies with cross-site requests if they are set with <code>SameSite=None</code> and <code>Secure</code>. You can review cookies in developer tools under Application&gt;Storage&gt;Cookies and see more details at <a href="https://www.chromestatus.com/feature/5088147346030592" target="_blank" rel="noopener">https://www.chromestatus.com/feature/5088147346030592</a> and <a href="https://www.chromestatus.com/feature/5633521622188032" target="_blank" rel="noopener">https://www.chromestatus.com/feature/5633521622188032</a>.</p>
+</blockquote>
+<p>我简单翻译下：Chrome 在未来的某个版本中会只允许显式声明了 <code>SameSite=None</code> 和 <code>Secure</code> 标识的 cookie 在跨域中使用。所以为了保证后续的稳定性，建议开发者还是显式地声明自己的 cookie 比较好。</p>
+<h2 id="那怎么做"><a href="#那怎么做" class="headerlink" title="那怎么做"></a>那怎么做</h2><p>开发者需要对自己站点所提供的 cookies 做一次全面的检查（不管 cookie 是由服务端通过返回的报头中下发的，还是通过 JS 脚本的 <code>document.cookies = xx</code> 声明的），对不同情况下使用的 cookies 做 <code>SameSite</code> 配置：</p>
+<ol>
+<li>对于仅可以在自己站点页面上触发的请求所依赖的 cookie，设 <code>SameSite=Strict</code></li>
+<li>对于仅和展示内容相关（比如登录状态）所依赖的 cookie，设 <code>SameSite=Lax</code></li>
+<li>对于完全不需要在请求中使用，但又确实需要用到 cookie（比如统计脚本中种的），设为 <code>SameSite=None</code></li>
+</ol>
+<p>虽然规范中的 SameSite 的默认值是 None，但目前已经有相应的 <a href="https://tools.ietf.org/html/draft-west-cookie-incrementalism-00" target="_blank" rel="noopener">提案</a> 建议将默认值修改为 <code>SameSite=Lax</code> 以及要求 <code>SameSite=None</code> 必须指定 <code>Secure</code>，且各个浏览器将陆续跟进：</p>
+<ul>
+<li>Chrome 将从 v80 开始<a href="https://www.chromestatus.com/feature/5088147346030592" target="_blank" rel="noopener">将 cookie 的默认值设为 <code>SameSite=Lax</code></a>，<a href="https://www.chromestatus.com/feature/5633521622188032" target="_blank" rel="noopener">禁止不安全的 SameSite=None cookie</a> – v80 在 2020.2.4 已进入稳定版。</li>
+<li>Firefox 从 <a href="https://groups.google.com/d/msg/mozilla.dev.platform/nx2uP0CzA9k/BNVPWDHsAQAJ" target="_blank" rel="noopener">v69 开始作为默认行为</a></li>
+<li>Edge 也<a href="https://groups.google.com/a/chromium.org/d/msg/blink-dev/AknSSyQTGYs/8lMmI5DwEAAJ" target="_blank" rel="noopener">计划跟进</a></li>
+</ul>
+<p>所以配置 <code>SameSite</code> 属性是很有必要的！建议开发者都做起来。</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a href="https://web.dev/samesite-cookies-explained/" target="_blank" rel="noopener">https://web.dev/samesite-cookies-explained/</a></li>
+<li><a href="https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-03#section-4.1" target="_blank" rel="noopener">https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-03#section-4.1</a></li>
+</ul>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;对 &lt;code&gt;SameSite&lt;/code&gt; 做些简单的研究探讨，没什么新鲜的，仅做记录参考。&lt;/p&gt;
+    
+    </summary>
+    
+    
+  </entry>
   
   <entry>
     <title>浅析 git 数据管理</title>
@@ -2337,84 +2432,6 @@
   </entry>
   
   <entry>
-    <title>科学上网是神马</title>
-    <link href="http://afantasy.ninja/2016/02/09/fuckgfw/"/>
-    <id>http://afantasy.ninja/2016/02/09/fuckgfw/</id>
-    <published>2016-02-08T16:49:00.000Z</published>
-    <updated>2018-07-21T14:13:08.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>努力做一个好的搬运工，解释清楚关于科学上网的事情。<br>这篇文章主要在科普一些基本概念，只是想了解具体翻墙方法的可以戳 <a href="/2016/02/09/break-gfw-fastforward/">这篇文章</a><br>程序员同行就没必要看这篇了，不是干货。<br><a id="more"></a></p>
-<h1 id="注"><a href="#注" class="headerlink" title="注"></a>注</h1><p>在查阅资料的过程中，发现早有前辈写了很相似的 <a href="https://github.com/XL2014/suixiang/blob/master/2009/05/how-to-break-through-gfw.md" target="_blank" rel="noopener">文章</a> 了，墙裂建议阅读（甚至不看我这篇都可以）。</p>
-<p>另外，在一年多以前我有幸现场听了 云梯的 <a href="https://twitter.com/kgen" target="_blank" rel="noopener">@kgen</a> 关于科学上网的演讲，并整理成了一篇 <a href="https://mp.weixin.qq.com/s?__biz=MzA4NjM4NTYxMg==&amp;mid=200088823&amp;idx=1&amp;sn=7051ce10ead42050b19fbe0711c7d564&amp;scene=1&amp;srcid=0112xCzg2tw3GEDLWtYcchAe&amp;key=710a5d99946419d9e394a967a4b10d549851905a7d3ff5e46d188bbecf5ea8c599a97e8bf8e339b8ddf09135e7370a09&amp;ascene=0&amp;uin=MjYyODA0MjQ4Mw%3D%3D&amp;devicetype=iMac+MacBookPro11%2C2+OSX+OSX+10.11.3+build(15D21)&amp;version=11020201&amp;pass_ticket=px%2FKbwHJYExj3Fb52LK%2FlNK4T1Q7IOubUmdFgDsYhcXx9BtQCsMI3oIxktwDz3MB" target="_blank" rel="noopener">文章</a></p>
-<p>所以本文仅仅做个简单的科普和介绍，并尽量搬运我觉得关于「科学上网」的一些有用的资料，以做日后参考。</p>
-<p>毕竟世界上有很多事情更值得我们去做，我们只关心最快速度的搞定墙。</p>
-<h1 id="what"><a href="#what" class="headerlink" title="what"></a>what</h1><h2 id="科学上网"><a href="#科学上网" class="headerlink" title="科学上网"></a>科学上网</h2><p>「科学上网」的定义：</p>
-<blockquote>
-<p>通过某种技术/非技术手段，摆脱 GFW 的束缚，自由浏览国外所有网站的行为。</p>
-</blockquote>
-<p>为了避免有朋友（比如，传统行业/年龄比较大的）还不大了解科学上网，这里稍微解释一下。</p>
-<p>现在我们当中的大部分人的生活，和三家目前国内的互联网的 BIG 3 息息相关：</p>
-<ul>
-<li>B 百度（搜索，贴吧，地图…）</li>
-<li>A 阿里巴巴（淘宝，支付宝…）</li>
-<li>T 腾讯（微信，QQ…）</li>
-</ul>
-<p>事实上很多我们所熟悉的品牌（携程，去哪儿，滴滴）也或多或少带有 BAT 的痕迹（或收购或持股），可以说这三家巨头已经深入了我们生活的很多方面了。</p>
-<p>所以大家应该对国内的很多著名的网站不会陌生（如果有上网的话），但是对国外的网站大家又知道多少呢？未必可知。这时候可能就会有人说：</p>
-<blockquote>
-<p>我不关心国外的网站，反正我也不需要上这些网站。</p>
-</blockquote>
-<p>那其实这篇文章对你就用处不大了，有点可惜…</p>
-<p>假设我们现在要访问一些国外的网站。问题来了：有些国外的网站，对于我们来说，是无法直接访问到的，比如我刚才提到的：</p>
-<ul>
-<li><a href="http://twitter.com/" target="_blank" rel="noopener">Twitter</a></li>
-<li><a href="http://facebook.com/" target="_blank" rel="noopener">Facebook</a></li>
-<li><a href="https://www.google.com" target="_blank" rel="noopener">Google</a></li>
-</ul>
-<p>读者可以试一下能不能打开。如果不能，说明你遇到了一个叫做「墙」的东西。摆脱「墙」的限制，愉快的访问国外的网站，就是「科学上网」。</p>
-<p>这里有一个新名词叫「墙」，需要先解释一下。</p>
-<h2 id="墙（a-k-a-GFW）"><a href="#墙（a-k-a-GFW）" class="headerlink" title="墙（a.k.a GFW）"></a>墙（a.k.a GFW）</h2><p>稍微科普一下为什么会有墙。</p>
-<ol>
-<li>目前全世界的网络是互相联通的，包括我国的网络。但是我国的网络连接全世界的网络，是通过对外的国际出口完成的。大家可以这么理解：我们和各个网站间的联系是水管，而国际出口是某个总闸。</li>
-<li>由于相关法规的规定，有关部门似乎希望控制我们能够访问的国外网站（换言之，不希望我们访问某些网站）<del>不要问我为什么，我还是想愉快的活下去的</del></li>
-<li>通过某些技术手段，有关部门的技术团队在总闸上加上了智能开关，于是「墙」就出现了。在计算机术语中，Fire Wall（防火墙）指隔离某些访问的软件工具，所以「墙」也被称作 Great Fire Wall，简称 GFW.</li>
-</ol>
-<p>关于「墙」具体的实现原理，可以看看 <a href="http://www.xvping.cn/archives/435" target="_blank" rel="noopener">这篇</a>，或者 <a href="https://zh.wikipedia.org/wiki/GFW" target="_blank" rel="noopener">维基百科</a></p>
-<h1 id="Why"><a href="#Why" class="headerlink" title="Why"></a>Why</h1><p><del><strong>其实 Why 是应该放在 What 前面的，因为没有 Why 就需要知道 What；但是不知道 What 又如何谈 Why 呢？ – 矛盾啊</strong></del></p>
-<p>Q：为什么要进行「科学上网」？<br>A：因为在以下情况中，可能需要访问国外的网站：</p>
-<ol>
-<li>对于学生：<ul>
-<li>写毕业论文要引用文献（Google Scholar）</li>
-<li>文科同学需要查看国外新闻时事</li>
-<li>理工科同学需要查看国外文档资料</li>
-<li>出过国的童鞋（你们懂的）</li>
-</ul>
-</li>
-<li>对于某些工种（如程序员），工作时也需要查阅国外的文档/…</li>
-<li>对于所有人<ul>
-<li>需要使用国外的服务，比如 Facebook/Twitter/Instagram/…</li>
-<li>同上，比如 Google Play… =.=||</li>
-</ul>
-</li>
-</ol>
-<p>甚至有时候，连看英超直播都要看国外的网站啊~！！<del>（因为不想付费给乐视，逃</del></p>
-<p>如果你确实不需要「科学上网」，那其实这篇文章对你就没什么用了。实在抱歉x2…</p>
-<h1 id="How"><a href="#How" class="headerlink" title="How"></a>How</h1><p>本来打算在这里写一下如何来「科学上网」，不过发现这是一个很大的 topic，所以还是单独写一篇文来解释吧。戳 <a href="/2016/02/09/break-gfw-fastforward/">这里</a></p>
-<p>感觉这篇完了也没有啥干货，真是抱歉 orz…</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;努力做一个好的搬运工，解释清楚关于科学上网的事情。&lt;br&gt;这篇文章主要在科普一些基本概念，只是想了解具体翻墙方法的可以戳 &lt;a href=&quot;/2016/02/09/break-gfw-fastforward/&quot;&gt;这篇文章&lt;/a&gt;&lt;br&gt;程序员同行就没必要看这篇了，不是干货。&lt;br&gt;
-    
-    </summary>
-    
-    
-      <category term="LifeHack" scheme="http://afantasy.ninja/tags/LifeHack/"/>
-    
-  </entry>
-  
-  <entry>
     <title>科学上网之快速过关</title>
     <link href="http://afantasy.ninja/2016/02/09/break-gfw-fastforward/"/>
     <id>http://afantasy.ninja/2016/02/09/break-gfw-fastforward/</id>
@@ -2572,6 +2589,84 @@
   </entry>
   
   <entry>
+    <title>科学上网是神马</title>
+    <link href="http://afantasy.ninja/2016/02/09/fuckgfw/"/>
+    <id>http://afantasy.ninja/2016/02/09/fuckgfw/</id>
+    <published>2016-02-08T16:49:00.000Z</published>
+    <updated>2018-07-21T14:13:08.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>努力做一个好的搬运工，解释清楚关于科学上网的事情。<br>这篇文章主要在科普一些基本概念，只是想了解具体翻墙方法的可以戳 <a href="/2016/02/09/break-gfw-fastforward/">这篇文章</a><br>程序员同行就没必要看这篇了，不是干货。<br><a id="more"></a></p>
+<h1 id="注"><a href="#注" class="headerlink" title="注"></a>注</h1><p>在查阅资料的过程中，发现早有前辈写了很相似的 <a href="https://github.com/XL2014/suixiang/blob/master/2009/05/how-to-break-through-gfw.md" target="_blank" rel="noopener">文章</a> 了，墙裂建议阅读（甚至不看我这篇都可以）。</p>
+<p>另外，在一年多以前我有幸现场听了 云梯的 <a href="https://twitter.com/kgen" target="_blank" rel="noopener">@kgen</a> 关于科学上网的演讲，并整理成了一篇 <a href="https://mp.weixin.qq.com/s?__biz=MzA4NjM4NTYxMg==&amp;mid=200088823&amp;idx=1&amp;sn=7051ce10ead42050b19fbe0711c7d564&amp;scene=1&amp;srcid=0112xCzg2tw3GEDLWtYcchAe&amp;key=710a5d99946419d9e394a967a4b10d549851905a7d3ff5e46d188bbecf5ea8c599a97e8bf8e339b8ddf09135e7370a09&amp;ascene=0&amp;uin=MjYyODA0MjQ4Mw%3D%3D&amp;devicetype=iMac+MacBookPro11%2C2+OSX+OSX+10.11.3+build(15D21)&amp;version=11020201&amp;pass_ticket=px%2FKbwHJYExj3Fb52LK%2FlNK4T1Q7IOubUmdFgDsYhcXx9BtQCsMI3oIxktwDz3MB" target="_blank" rel="noopener">文章</a></p>
+<p>所以本文仅仅做个简单的科普和介绍，并尽量搬运我觉得关于「科学上网」的一些有用的资料，以做日后参考。</p>
+<p>毕竟世界上有很多事情更值得我们去做，我们只关心最快速度的搞定墙。</p>
+<h1 id="what"><a href="#what" class="headerlink" title="what"></a>what</h1><h2 id="科学上网"><a href="#科学上网" class="headerlink" title="科学上网"></a>科学上网</h2><p>「科学上网」的定义：</p>
+<blockquote>
+<p>通过某种技术/非技术手段，摆脱 GFW 的束缚，自由浏览国外所有网站的行为。</p>
+</blockquote>
+<p>为了避免有朋友（比如，传统行业/年龄比较大的）还不大了解科学上网，这里稍微解释一下。</p>
+<p>现在我们当中的大部分人的生活，和三家目前国内的互联网的 BIG 3 息息相关：</p>
+<ul>
+<li>B 百度（搜索，贴吧，地图…）</li>
+<li>A 阿里巴巴（淘宝，支付宝…）</li>
+<li>T 腾讯（微信，QQ…）</li>
+</ul>
+<p>事实上很多我们所熟悉的品牌（携程，去哪儿，滴滴）也或多或少带有 BAT 的痕迹（或收购或持股），可以说这三家巨头已经深入了我们生活的很多方面了。</p>
+<p>所以大家应该对国内的很多著名的网站不会陌生（如果有上网的话），但是对国外的网站大家又知道多少呢？未必可知。这时候可能就会有人说：</p>
+<blockquote>
+<p>我不关心国外的网站，反正我也不需要上这些网站。</p>
+</blockquote>
+<p>那其实这篇文章对你就用处不大了，有点可惜…</p>
+<p>假设我们现在要访问一些国外的网站。问题来了：有些国外的网站，对于我们来说，是无法直接访问到的，比如我刚才提到的：</p>
+<ul>
+<li><a href="http://twitter.com/" target="_blank" rel="noopener">Twitter</a></li>
+<li><a href="http://facebook.com/" target="_blank" rel="noopener">Facebook</a></li>
+<li><a href="https://www.google.com" target="_blank" rel="noopener">Google</a></li>
+</ul>
+<p>读者可以试一下能不能打开。如果不能，说明你遇到了一个叫做「墙」的东西。摆脱「墙」的限制，愉快的访问国外的网站，就是「科学上网」。</p>
+<p>这里有一个新名词叫「墙」，需要先解释一下。</p>
+<h2 id="墙（a-k-a-GFW）"><a href="#墙（a-k-a-GFW）" class="headerlink" title="墙（a.k.a GFW）"></a>墙（a.k.a GFW）</h2><p>稍微科普一下为什么会有墙。</p>
+<ol>
+<li>目前全世界的网络是互相联通的，包括我国的网络。但是我国的网络连接全世界的网络，是通过对外的国际出口完成的。大家可以这么理解：我们和各个网站间的联系是水管，而国际出口是某个总闸。</li>
+<li>由于相关法规的规定，有关部门似乎希望控制我们能够访问的国外网站（换言之，不希望我们访问某些网站）<del>不要问我为什么，我还是想愉快的活下去的</del></li>
+<li>通过某些技术手段，有关部门的技术团队在总闸上加上了智能开关，于是「墙」就出现了。在计算机术语中，Fire Wall（防火墙）指隔离某些访问的软件工具，所以「墙」也被称作 Great Fire Wall，简称 GFW.</li>
+</ol>
+<p>关于「墙」具体的实现原理，可以看看 <a href="http://www.xvping.cn/archives/435" target="_blank" rel="noopener">这篇</a>，或者 <a href="https://zh.wikipedia.org/wiki/GFW" target="_blank" rel="noopener">维基百科</a></p>
+<h1 id="Why"><a href="#Why" class="headerlink" title="Why"></a>Why</h1><p><del><strong>其实 Why 是应该放在 What 前面的，因为没有 Why 就需要知道 What；但是不知道 What 又如何谈 Why 呢？ – 矛盾啊</strong></del></p>
+<p>Q：为什么要进行「科学上网」？<br>A：因为在以下情况中，可能需要访问国外的网站：</p>
+<ol>
+<li>对于学生：<ul>
+<li>写毕业论文要引用文献（Google Scholar）</li>
+<li>文科同学需要查看国外新闻时事</li>
+<li>理工科同学需要查看国外文档资料</li>
+<li>出过国的童鞋（你们懂的）</li>
+</ul>
+</li>
+<li>对于某些工种（如程序员），工作时也需要查阅国外的文档/…</li>
+<li>对于所有人<ul>
+<li>需要使用国外的服务，比如 Facebook/Twitter/Instagram/…</li>
+<li>同上，比如 Google Play… =.=||</li>
+</ul>
+</li>
+</ol>
+<p>甚至有时候，连看英超直播都要看国外的网站啊~！！<del>（因为不想付费给乐视，逃</del></p>
+<p>如果你确实不需要「科学上网」，那其实这篇文章对你就没什么用了。实在抱歉x2…</p>
+<h1 id="How"><a href="#How" class="headerlink" title="How"></a>How</h1><p>本来打算在这里写一下如何来「科学上网」，不过发现这是一个很大的 topic，所以还是单独写一篇文来解释吧。戳 <a href="/2016/02/09/break-gfw-fastforward/">这里</a></p>
+<p>感觉这篇完了也没有啥干货，真是抱歉 orz…</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;努力做一个好的搬运工，解释清楚关于科学上网的事情。&lt;br&gt;这篇文章主要在科普一些基本概念，只是想了解具体翻墙方法的可以戳 &lt;a href=&quot;/2016/02/09/break-gfw-fastforward/&quot;&gt;这篇文章&lt;/a&gt;&lt;br&gt;程序员同行就没必要看这篇了，不是干货。&lt;br&gt;
+    
+    </summary>
+    
+    
+      <category term="LifeHack" scheme="http://afantasy.ninja/tags/LifeHack/"/>
+    
+  </entry>
+  
+  <entry>
     <title>当提技术问题前我在想什么</title>
     <link href="http://afantasy.ninja/2016/02/09/what-i-am-thinking-before-asking-questions/"/>
     <id>http://afantasy.ninja/2016/02/09/what-i-am-thinking-before-asking-questions/</id>
@@ -2660,63 +2755,6 @@
     
     
       <category term="LifeHack" scheme="http://afantasy.ninja/tags/LifeHack/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>[译] 如何在 Drupal 7 中构建模块</title>
-    <link href="http://afantasy.ninja/2016/02/05/how-to-create-a-module-in-drupal-7/"/>
-    <id>http://afantasy.ninja/2016/02/05/how-to-create-a-module-in-drupal-7/</id>
-    <published>2016-02-04T16:00:00.000Z</published>
-    <updated>2018-07-21T14:13:08.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>注1：本文翻译自 Drupal 官方网站关于构建模块的<a href="https://www.drupal.org/developing/modules/7" title="Drupal 7 模块指南" target="_blank" rel="noopener">指南</a>，结合实际操作有部分修改和简化。</p>
-<p>注2：阅读本文需要对 Drupal 有基本的了解：知道如何使用 Drupal 的管理后台，以及安装模块。</p>
-<h3 id="Getting-Started"><a href="#Getting-Started" class="headerlink" title="Getting Started"></a>Getting Started</h3><h4 id="预备工作"><a href="#预备工作" class="headerlink" title="预备工作"></a>预备工作</h4><ol>
-<li>给模块取个名字。模块名建议用 “下划线+小写“ 的方式，以避免不必要的问题，比如 my_custom_module</li>
-<li>创建一个文件夹作为模块的文件夹</li>
-<li>在文件夹中新建两个 php 文件，分别是 <code>my_custom_module.module</code> 和 <code>my_custom_module.info</code>。module 文件是该模块的主文件入口，info 文件是该模块的定义，记录关于该模块的元信息。</li>
-<li><p>初始化 <code>my_custom_module.info</code> 文件。info 文件的通用模板为：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">name = My Custom Module</div><div class="line">description = A description of what your module does</div><div class="line">core = 7.x</div></pre></td></tr></table></figure>
-<p>这里的 name 和 description 会显示在网站后台的模块管理界面中，作为模块的名字和介绍。关于 info 文件的详细介绍可以参考相应的 <a href="http://drupal.org/node/542202" title="info 文件的介绍" target="_blank" rel="noopener">Drupal 文档</a>.</p>
-</li>
-<li><p>初始化 <code>my_custom_module.module</code> 文件。在没有添加任何功能前，先在文件中加入一行 php 的开头标签（不需要结尾，如果加入结尾标签可能会导致一些运行问题）</p>
-<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// my_custom_module.module</span></div><div class="line"><span class="meta">&lt;?php</span></div></pre></td></tr></table></figure>
-</li>
-<li><p>将模块的整个文件夹放入 <code>sites/all/modules</code> 文件夹中</p>
-</li>
-<li>这时在 Drupal 的管理后台中，你应该能够看到一个名字为 “My Custom Module” 的模块。启用它并保存配置。</li>
-</ol>
-<h4 id="实现第一个钩子"><a href="#实现第一个钩子" class="headerlink" title="实现第一个钩子"></a><a href="https://www.drupal.org/node/1095546" title="Drupal 7 模块指南 - 钩子函数" target="_blank" rel="noopener">实现第一个钩子</a></h4><p>接下来我们要利用通过 “钩子函数”（hooks） 来在模块中实现某些特定的功能。钩子函数的命名方式为：<code>{module_name}_{function_name}</code>，其中 <code>module_name</code> 是模块的名字，而 <code>function_name</code> 是预定义的钩子函数的后缀。Drupal 会调用这些钩子函数，并传入相应的特定数据。</p>
-<p>为了便于展示，我们来实现一个简单的钩子：<a href="hook_help-doc"><code>hook_help</code></a>，这个钩子可以让我们向使用者提供关于这个模块的帮助信息。要实现这个函数，我们就要用模块名字来取代钩子命名中的 “hook”，也就是实现一个叫做 <code>my_custom_module_help</code> 的函数，代码如下：</p>
-<figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&lt;?php</span></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">my_custom_module_help</span><span class="params">($path, $arg)</span> </span>&#123;</div><div class="line">  <span class="keyword">switch</span>($path) &#123;</div><div class="line">    <span class="keyword">case</span> <span class="string">"admin/help#my_custom_module"</span>:</div><div class="line">      <span class="keyword">return</span> <span class="string">"&lt;p&gt;Do something&lt;/p&gt;"</span>;</div><div class="line">      <span class="keyword">break</span>;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>这个钩子函数接受两个参数：</p>
-<ul>
-<li><code>$path</code> 参数是用户查看模块帮助时所在的位置，即当前所处的 url 地址，这个参数可以是通配符</li>
-<li><code>$arg</code> 当 <code>$path</code> 为通配符时的匹配参数</li>
-</ul>
-<p>在这个例子中我们仅匹配特定的路径，所以仅使用 <code>$path</code> 参数（更多用法可以直接查看 Drupal 的<a href="https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_help/7" title="hook_help 钩子的文档" target="_blank" rel="noopener">文档</a>）。</p>
-<h4 id="检查钩子是否正确工作"><a href="#检查钩子是否正确工作" class="headerlink" title="检查钩子是否正确工作"></a>检查钩子是否正确工作</h4><p>在模块管理界面查看 “My Custom Module” 这个模块，这时应该能够看到一个 “help” 的链接（首先要确保启用了 Help 这个核心模块），点击进入模块的帮助页面，查看钩子函数返回的文字内容。</p>
-<p>如果没有看到该链接，尝试先禁用模块，再重新启用。</p>
-<p>到这里为止，我们就顺利的搭建模块了！实现钩子函数是模块最常用的使用方法。</p>
-<h3 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h3><ol>
-<li><a href="https://www.drupal.org/developing/modules/7" title="Drupal 7 模块指南" target="_blank" rel="noopener">Drupal 7 模块指南</a></li>
-<li><a href="https://www.drupal.org/node/1095546" title="Drupal 7 模块指南 - 钩子函数" target="_blank" rel="noopener">Drupal 7 模块指南 - 钩子函数</a></li>
-<li><a href="http://drupal.org/node/542202" title="info 文件的介绍" target="_blank" rel="noopener">Drupal 7 模块的 info 文件</a></li>
-<li><a href="https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_help/7" title="hook_help 钩子的文档" target="_blank" rel="noopener">Drupal 7 hook_help 函数</a></li>
-</ol>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;注1：本文翻译自 Drupal 官方网站关于构建模块的&lt;a href=&quot;https://www.drupal.org/developing/modules/7&quot; title=&quot;Drupal 7 模块指南&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;指南&lt;
-    
-    </summary>
-    
-    
-      <category term="Drupal" scheme="http://afantasy.ninja/tags/Drupal/"/>
-    
-      <category term="Translation" scheme="http://afantasy.ninja/tags/Translation/"/>
     
   </entry>
   

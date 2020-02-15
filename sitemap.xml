@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://afantasy.ninja/2020/02/15/cookie-samesite/</loc>
+    
+    <lastmod>2020-02-15T08:11:00.887Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://afantasy.ninja/2019/09/01/brief-talk-about-git-data/</loc>
     
     <lastmod>2020-02-02T05:50:04.331Z</lastmod>
@@ -16,13 +23,6 @@
   </url>
   
   <url>
-    <loc>http://afantasy.ninja/2018/07/15/dive-into-iframe/</loc>
-    
-    <lastmod>2018-07-21T18:14:35.000Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://afantasy.ninja/2018/05/25/cssconf-note-scalable-comp/</loc>
     
     <lastmod>2018-07-21T18:14:35.000Z</lastmod>
@@ -30,9 +30,9 @@
   </url>
   
   <url>
-    <loc>http://afantasy.ninja/2016/02/05/how-to-create-a-module-in-drupal-7/</loc>
+    <loc>http://afantasy.ninja/2018/07/15/dive-into-iframe/</loc>
     
-    <lastmod>2018-07-21T14:13:08.000Z</lastmod>
+    <lastmod>2018-07-21T18:14:35.000Z</lastmod>
     
   </url>
   
@@ -58,7 +58,14 @@
   </url>
   
   <url>
-    <loc>http://afantasy.ninja/2018/05/13/lets-talk-observable-i/</loc>
+    <loc>http://afantasy.ninja/tags/index.html</loc>
+    
+    <lastmod>2018-07-21T14:13:08.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://afantasy.ninja/2017/05/08/user-tracking-iv/</loc>
     
     <lastmod>2018-07-21T14:13:08.000Z</lastmod>
     
@@ -72,13 +79,6 @@
   </url>
   
   <url>
-    <loc>http://afantasy.ninja/tags/index.html</loc>
-    
-    <lastmod>2018-07-21T14:13:08.000Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://afantasy.ninja/2015/06/05/blog-by-hexo-and-github-page/</loc>
     
     <lastmod>2018-07-21T14:13:08.000Z</lastmod>
@@ -86,14 +86,14 @@
   </url>
   
   <url>
-    <loc>http://afantasy.ninja/2018/04/08/co-source-reading/</loc>
+    <loc>http://afantasy.ninja/2016/02/05/how-to-create-a-module-in-drupal-7/</loc>
     
     <lastmod>2018-07-21T14:13:08.000Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://afantasy.ninja/2017/05/08/user-tracking-iii/</loc>
+    <loc>http://afantasy.ninja/2018/04/08/co-source-reading/</loc>
     
     <lastmod>2018-07-21T14:13:08.000Z</lastmod>
     
@@ -114,7 +114,14 @@
   </url>
   
   <url>
-    <loc>http://afantasy.ninja/2017/05/08/user-tracking-iv/</loc>
+    <loc>http://afantasy.ninja/2017/05/08/user-tracking-iii/</loc>
+    
+    <lastmod>2018-07-21T14:13:08.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://afantasy.ninja/2018/05/13/lets-talk-observable-i/</loc>
     
     <lastmod>2018-07-21T14:13:08.000Z</lastmod>
     

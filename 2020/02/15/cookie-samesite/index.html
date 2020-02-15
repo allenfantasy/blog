@@ -1,0 +1,94 @@
+<!DOCTYPE html><html lang="zh-cn"><head><meta charset="utf-8"><meta name="X-UA-Compatible" content="IE=edge"><title> Cookie SameSite · A Fantasy Ninja</title><meta name="description" content="Cookie SameSite - Allen"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="short icon" href="/favicon.png"><link rel="stylesheet" href="/css/apollo.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600" type="text/css"></head><body><header><a href="/" class="logo-link"><img src="/favicon.png"></a><ul class="nav nav-list"><li class="nav-list-item"><a href="/" target="_self" class="nav-list-link">BLOG</a></li><li class="nav-list-item"><a href="https://github.com/allenfantasy" target="_blank" class="nav-list-link">GITHUB</a></li></ul></header><section class="container"><div class="post"><article class="post-block"><h1 class="post-title">Cookie SameSite</h1><div class="post-meta"><span class="post-time">2020年2月15日</span><span class="taglist"></span></div><div class="post-content"><p>对 <code>SameSite</code> 做些简单的研究探讨，没什么新鲜的，仅做记录参考。</p>
+<a id="more"></a>
+<h2 id="为何需要-SameSite-Cookie-现存的问题"><a href="#为何需要-SameSite-Cookie-现存的问题" class="headerlink" title="为何需要 SameSite: Cookie 现存的问题"></a>为何需要 SameSite: Cookie 现存的问题</h2><p>在解释为何要 SameSite 时，首先我们解释下 first-party cookie 和 third-party cooki</p>
+<p><strong>First-Party Cookies</strong>: 和当前站点域名对应的 cookie<br><strong>Third-Party Cookies</strong>: 来自其他域名的 cookie</p>
+<p>以下我们探讨 cookie 现存的两个问题</p>
+<h3 id="占用请求带宽"><a href="#占用请求带宽" class="headerlink" title="占用请求带宽"></a>占用请求带宽</h3><p>第三方 cookie 在某些特定的场合的确是有用的，比如说你在页面中嵌入一个 YouTube 的播放器，那么如果用户的浏览器已经登录了 YouTube 那么，第三方 cookie 就可以保证用户可以在嵌入的播放器中使用已登录用户可使用的功能比如 <code>稍后再看</code>。</p>
+<p>但从总体来看，第三方资源中的 cookie 并不 <strong>总是</strong> 有用的，很多 cookie 其实不是必须的，但在对第三方资源（CDN 等）发起请求时还是被带上了。</p>
+<p>由于上传的带宽相比下载带宽更加的有限，这就增加了 TTFB (Time to first byte) 的时间。</p>
+<h3 id="CSRF"><a href="#CSRF" class="headerlink" title="CSRF"></a>CSRF</h3><p>首先有必要简单的介绍 CSRF：</p>
+<p>Cross-site request forgery (CSRF) 是一种常见的网页攻击手段。通过诱导用户访问钓鱼网站，并在网站中嵌入对攻击目标站点（如银行，金融产品，社交网络）的表单，诱导用户点击触发表单请求，就可以在当前用户已经登录目标站点（即：浏览器中含有 cookie）的前提下，在用户不知情时发起相关的操作（如：转账）。</p>
+<p>目前对 CSRF 的一个通用的防御方式，是在表单中增加一个随机的 token 字段，该 token 只能由表单所在的站点后台服务产生并派发到网页端；生成的 token 同时和当前用户的 session 关联；在接受表单请求时，服务端将校验当前用户的 session 是否与表单中携带的 token 是匹配的。如果是的话则允许表单通过。</p>
+<p>由于 token 的生成是无法由第三方控制的，所以这就简单地杜绝了 CSRF 的可能性。</p>
+<p>但利用第三方 cookie 对其域名服务进行攻击的可能性，理论上还是存在的，所以还是需要防备的。</p>
+<p>综上所述，我们需要的是能够对 cookie 进行不同的区分处理：对于不需要在第三方使用到的 cookie，最好是可以让浏览器在第三方站点请求我方站点资源时不带上；同时也可以允许第三方请求我方资源时带上某些 cookie 以保证用户的体验。</p>
+<h2 id="Here-comes-SameSite"><a href="#Here-comes-SameSite" class="headerlink" title="Here comes SameSite"></a>Here comes SameSite</h2><p><code>SameSite</code> 正是解决这个问题的方法。它是一个设置 Cookie 时用到的属性。可以用于声明你的 cookie 是否限定在同一个 site 下使用。</p>
+<p>当然我们有必要说明下这里的 <code>site</code>（以下称为”站点“）的含义：</p>
+<p>首先是 <a href="https://publicsuffix.org/list/public_suffix_list.dat" target="_blank" rel="noopener">Public Suffix List</a> 列举了所有的顶级域名后缀，如：</p>
+<ul>
+<li><code>.dev</code></li>
+<li><code>.com</code></li>
+<li><code>.github.io</code></li>
+</ul>
+<p>那么 <code>站点</code> 就是指顶级域名后缀加上在后缀之前的那一部分域名，如：</p>
+<ul>
+<li><code>web.dev</code> </li>
+<li><code>xxx.github.io</code></li>
+</ul>
+<p>在绝大部分的情况下，我们可以将 <code>站点</code> 简单理解为大家常说的 <code>一级域名</code>。那么 <code>SameSite</code> 所约束的同一个 site 其实就是指：</p>
+<blockquote>
+<p>同一个 <code>一级域名</code> 下的各个子域名间的资源属于同一个站点</p>
+</blockquote>
+<h3 id="使用-SameSite"><a href="#使用-SameSite" class="headerlink" title="使用 SameSite"></a>使用 SameSite</h3><p>我们可以在 <code>Set-Cookie</code> 时指定 <code>SameSite</code> 属性：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Set-Cookie: &lt;cookie-name&gt;=&lt;cookie-value&gt;; Domain=&lt;domain-value&gt;; HttpOnly; Secure; SameSite=&lt;same-site-value&gt;</div></pre></td></tr></table></figure>
+<p><code>SameSite</code> 可以设三个值：<code>Strict</code>，<code>Lax</code> 和 <code>None</code>。用一个图来清晰表达它们的使用场景：</p>
+<p><img src="https://web.dev/samesite-cookies-explained/samesite-none-lax-strict.png" alt=""></p>
+<h4 id="SameSite-Strict"><a href="#SameSite-Strict" class="headerlink" title="SameSite=Strict"></a><code>SameSite=Strict</code></h4><p>如果设置 <code>SameSite</code> 为 <code>Strict</code>，则完全禁止第三方 cookie，只有用户 <strong>已经在站点</strong> 上时发起的请求才可以带上这个 cookie。</p>
+<p>那就意味着任何从外部（我的理解是 <code>Referer</code> 不是站点本身，或者没有 <code>Referer</code>）访问这个站点的请求都不会带上 cookie。</p>
+<p>盲目地使用该值最可能触发的问题是影响用户 <strong>第一次访问（top-level navigation）</strong> 站点的体验，比如说如果把维持用户当前登录状态的 cookie 设成 <code>SameSite</code> 的，那么用户即便之前已经登录过站点，下一次直接从浏览器里输入地址（或者通过书签）访问，都是无法看到登录后内容的。又或者说用户在一个第三方站点里点击一个微博的链接，假如微博将登录 cookie 设成 <code>SameSite</code> 用户跳转后将发现自己处于未登录状态。</p>
+<p>所以在 <a href="https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-03#section-5.3.7" target="_blank" rel="noopener">RFC6265</a> 规范中也提到：</p>
+<blockquote>
+<p>… As discussed in <a href="https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-03#section-8.8.2" target="_blank" rel="noopener">Section 8.8.2</a>, this might or might<br>not be compatible with existing session management systems.</p>
+</blockquote>
+<p>所以如果是涉及到必须要用户在站点上操作的功能，将 cookie 设置为 <code>Strict</code> 比较合适，而对于第一次访问时使用的 cookie，一个更切实的做法是使用 <code>Lax</code> 属性值。</p>
+<h4 id="SameSite-Lax"><a href="#SameSite-Lax" class="headerlink" title="SameSite=Lax"></a><code>SameSite=Lax</code></h4><p>相比于 <code>Strict</code> 模式，<code>SameSite=Lax</code> 相对宽松一些，允许第一次导航到目标网址也带上 cookie。导航到目标网址有以下几种情况：</p>
+<ul>
+<li>链接：<code>&lt;a href=&quot;...&quot;&gt;...&lt;/a&gt;</code></li>
+<li>预加载：<code>&lt;link ref=&quot;prerender&quot; href=&quot;...&quot; /&gt;</code></li>
+<li>GET 表单：<code>&lt;form method=&quot;GET&quot; action=&quot;...&quot;&gt;</code></li>
+</ul>
+<p>这里值得留意的是 <a href="https://www.chromium.org/developers/design-documents/prerender" target="_blank" rel="noopener">predender</a> 的方式，在 <code>Lax</code> 模式下也是可以带上 cookie 的，如 <a href="https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-03#section-5.3.7" target="_blank" rel="noopener">规范中提到的</a>，站点的开发者应该小心处理关于用户权限相关的 cookie，只允许控制读权限的 cookie 使用 <code>Lax</code> 模式，以降低 CSRF 攻击风险。</p>
+<blockquote>
+<p>… Features like <code>&lt;link rel=&#39;prerender&#39;&gt;</code> prerendering can be<br>exploited to create “same-site” requests without the risk of user<br>detection.<br>…<br>When possible, developers should use a session management mechanism<br>such as that described in <a href="https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-03#section-8.8.2" target="_blank" rel="noopener">Section 8.8.2</a> to mitigate the risk of CSRF<br>more completely.</p>
+</blockquote>
+<h4 id="默认模式"><a href="#默认模式" class="headerlink" title="默认模式"></a>默认模式</h4><p>在规范中说明的，如果在设置 cookie 时并未显式声明 <code>SameSite</code> 则浏览器会认为该 cookie 可以在任何地方的请求中带上，这样的模式也可以通过 <code>SameSite=None</code> 显式地声明。注意声明时需要同时加上 <code>Secure</code> 否则声明无效：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Set-Cookie: widget_session=123; SameSite=None; Secure</div></pre></td></tr></table></figure>
+<p>虽然规范是允许我们不声明的，但值得一提的是在 Chrome 中，目前如果出现了没有声明 <code>SameSite</code> 的 cookie，会弹出一个警告信息：</p>
+<blockquote>
+<p>A cookie associated with a cross-site resource at <a href="http://xxx.yourwebsite.com" target="_blank" rel="noopener">http://xxx.yourwebsite.com</a> was set without the <code>SameSite</code> attribute. A future release of Chrome will only deliver cookies with cross-site requests if they are set with <code>SameSite=None</code> and <code>Secure</code>. You can review cookies in developer tools under Application&gt;Storage&gt;Cookies and see more details at <a href="https://www.chromestatus.com/feature/5088147346030592" target="_blank" rel="noopener">https://www.chromestatus.com/feature/5088147346030592</a> and <a href="https://www.chromestatus.com/feature/5633521622188032" target="_blank" rel="noopener">https://www.chromestatus.com/feature/5633521622188032</a>.</p>
+</blockquote>
+<p>我简单翻译下：Chrome 在未来的某个版本中会只允许显式声明了 <code>SameSite=None</code> 和 <code>Secure</code> 标识的 cookie 在跨域中使用。所以为了保证后续的稳定性，建议开发者还是显式地声明自己的 cookie 比较好。</p>
+<h2 id="那怎么做"><a href="#那怎么做" class="headerlink" title="那怎么做"></a>那怎么做</h2><p>开发者需要对自己站点所提供的 cookies 做一次全面的检查（不管 cookie 是由服务端通过返回的报头中下发的，还是通过 JS 脚本的 <code>document.cookies = xx</code> 声明的），对不同情况下使用的 cookies 做 <code>SameSite</code> 配置：</p>
+<ol>
+<li>对于仅可以在自己站点页面上触发的请求所依赖的 cookie，设 <code>SameSite=Strict</code></li>
+<li>对于仅和展示内容相关（比如登录状态）所依赖的 cookie，设 <code>SameSite=Lax</code></li>
+<li>对于完全不需要在请求中使用，但又确实需要用到 cookie（比如统计脚本中种的），设为 <code>SameSite=None</code></li>
+</ol>
+<p>虽然规范中的 SameSite 的默认值是 None，但目前已经有相应的 <a href="https://tools.ietf.org/html/draft-west-cookie-incrementalism-00" target="_blank" rel="noopener">提案</a> 建议将默认值修改为 <code>SameSite=Lax</code> 以及要求 <code>SameSite=None</code> 必须指定 <code>Secure</code>，且各个浏览器将陆续跟进：</p>
+<ul>
+<li>Chrome 将从 v80 开始<a href="https://www.chromestatus.com/feature/5088147346030592" target="_blank" rel="noopener">将 cookie 的默认值设为 <code>SameSite=Lax</code></a>，<a href="https://www.chromestatus.com/feature/5633521622188032" target="_blank" rel="noopener">禁止不安全的 SameSite=None cookie</a> – v80 在 2020.2.4 已进入稳定版。</li>
+<li>Firefox 从 <a href="https://groups.google.com/d/msg/mozilla.dev.platform/nx2uP0CzA9k/BNVPWDHsAQAJ" target="_blank" rel="noopener">v69 开始作为默认行为</a></li>
+<li>Edge 也<a href="https://groups.google.com/a/chromium.org/d/msg/blink-dev/AknSSyQTGYs/8lMmI5DwEAAJ" target="_blank" rel="noopener">计划跟进</a></li>
+</ul>
+<p>所以配置 <code>SameSite</code> 属性是很有必要的！建议开发者都做起来。</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a href="https://web.dev/samesite-cookies-explained/" target="_blank" rel="noopener">https://web.dev/samesite-cookies-explained/</a></li>
+<li><a href="https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-03#section-4.1" target="_blank" rel="noopener">https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-03#section-4.1</a></li>
+</ul>
+</div></article></div></section><footer><div class="paginator"><a href="/2019/09/01/brief-talk-about-git-data/" class="next">下一篇</a></div><div id="disqus_thread"></div><script>/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+
+var disqus_config = function () {
+    this.page.url = 'http://afantasy.ninja/2020/02/15/cookie-samesite/';
+    // Replace PAGE_URL with your page's canonical URL variable
+    this.page.identifier = '2020/02/15/cookie-samesite/';
+    // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+(function() { // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    s.src = 'https://afantasy-ninja.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+})();
+</script><noscript>Please enable JavaScript to view the<a href="https://disqus.com/?ref_noscript">comments powered by Disqus</a></noscript><script id="dsq-count-scr" src="//afantasy-ninja.disqus.com/count.js" async></script><div class="copyright"><p>© 2015 - 2020 <a href="http://afantasy.ninja">Allen</a>, unless otherwise noted.</p></div></footer><script src="https://cdn.bootcss.com/mathjax/2.5.3/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script src="https://s22.cnzz.com/z_stat.php?id=1261988857&amp;web_id=1261988857"></script><script>document.querySelector('[title="站长统计"]').style.display = 'none'</script></body></html>
